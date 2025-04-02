@@ -74,6 +74,11 @@ class MonitorSystem:
         self.date_check_thread_running = True
         self.date_check_thread.start()
 
+        # 添加单次计时会话跟踪变量
+        self.current_session_start = None
+        self.overtime_adjustment = 2 * 3600  # 超时调整: 2小时(秒)
+        self.overtime_threshold = 12 * 3600  # 超时阈值: 12小时(秒)
+
     def update_daily_directory(self):
         """更新当天的数据目录"""
         self.current_date = datetime.datetime.now().strftime("%Y%m%d")
@@ -498,6 +503,9 @@ class MonitorSystem:
         if self.status_callback:
             self.status_callback("检测已启动")
 
+        # 记录会话开始时间
+        self.current_session_start = time.time()
+
     def pause(self):
         """暂停检测"""
         if not self.paused and self.start_time:
@@ -522,6 +530,9 @@ class MonitorSystem:
         # 保存统计数据
         self.save_stats()
 
+        # 处理可能的超时情况
+        self._handle_session_end()
+
     def resume(self):
         """恢复检测"""
         self.paused = False
@@ -529,6 +540,9 @@ class MonitorSystem:
         logging.info("检测程序已恢复")
         if self.status_callback:
             self.status_callback("等待下一次记录")
+
+        # 重新开始新会话计时
+        self.current_session_start = time.time()
 
     def stop(self):
         """停止检测"""
@@ -556,7 +570,35 @@ class MonitorSystem:
         logging.info("检测程序已停止")
         if self.status_callback:
             self.status_callback("检测已停止")
+
+        # 处理可能的超时情况
+        self._handle_session_end()
+
+    def _handle_session_end(self):
+        """处理会话结束，检查是否超时并相应调整累计时间"""
+        if self.current_session_start is not None:
+            session_duration = time.time() - self.current_session_start
+            # 如果单次计时超过12小时，在累计时间中减去2小时
+            if session_duration > self.overtime_threshold:
+                self.status_callback(f"检测到单次计时超过12小时，自动减去2小时计时")
+                # 更新总计时间，减去2小时调整
+                adjustment_time = min(self.overtime_adjustment, session_duration - 1800)  # 至少保留30分钟
+                # 更新相关统计数据
+                self._adjust_stats_for_overtime(adjustment_time)
             
+            # 重置会话开始时间
+            self.current_session_start = None
+
+    def _adjust_stats_for_overtime(self, adjustment_time):
+        """调整因超时而需要减少的统计时间"""
+        # 减少今日累计时间
+        self.total_time_today -= adjustment_time
+        # 减少本周累计时间
+        self.total_time_week -= adjustment_time
+        # 如果是周末，也减少周末时间
+        if self.is_weekend():
+            self.total_time_weekend -= adjustment_time
+
     def get_stats(self):
         """获取当前统计数据"""
         today_time = self.total_time_today
