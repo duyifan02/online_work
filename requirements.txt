@@ -1,0 +1,5 @@
+opencv-python>=4.5.0
+psutil>=5.8.0
+pillow>=8.0.0
+numpy>=1.19.0
+# tkinter通常随Python一起安装，无需单独安装
