@@ -1,3 +1,4 @@
 # /monitoring_data
 /__pycache__
 *.jpg
+!screenshot.jpg

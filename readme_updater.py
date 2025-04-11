@@ -57,17 +57,78 @@ class ReadmeUpdater:
         # 按日期排序（从新到旧）
         stats_list.sort(key=lambda x: x.get('date', ''), reverse=True)
         return stats_list
+
+    def _time_string_to_hours(self, time_str):
+        """将时间字符串 (HH:MM:SS) 转换为小时数"""
+        try:
+            h, m, s = map(int, time_str.split(':'))
+            return h + m / 60 + s / 3600
+        except (ValueError, AttributeError):
+            return 0
+    
+    def _seconds_to_hours(self, seconds):
+        """将秒数转换为小时数"""
+        try:
+            return float(seconds) / 3600
+        except (ValueError, TypeError):
+            return 0
+    
+    def _get_week_date_range(self, week_start_date_str):
+        """计算周的日期区间（周一到周日）
+        
+        Args:
+            week_start_date_str: 周开始日期字符串 (ISO格式 YYYY-MM-DD)
+            
+        Returns:
+            str: 格式化的日期区间字符串
+        """
+        try:
+            # 解析周开始日期（周一）
+            if isinstance(week_start_date_str, str):
+                year, month, day = map(int, week_start_date_str.split('-'))
+                week_start = datetime.date(year, month, day)
+            else:
+                # 如果已经是date对象，直接使用
+                week_start = week_start_date_str
+                
+            # 计算周结束日期（周日）
+            week_end = week_start + datetime.timedelta(days=6)
+            
+            # 格式化为简洁的日期区间
+            # 如果是同一个月，则显示为 "10.1-10.7, 2023"
+            if week_start.month == week_end.month and week_start.year == week_end.year:
+                return f"{week_start.month}.{week_start.day}-{week_end.day}, {week_start.year}"
+            # 如果是同一年不同月，则显示为 "12.29-1.4, 2023"
+            elif week_start.year == week_end.year:
+                return f"{week_start.month}.{week_start.day}-{week_end.month}.{week_end.day}, {week_start.year}"
+            # 如果是跨年，则显示为 "12.29, 2022 - 1.4, 2023"
+            else:
+                return f"{week_start.month}.{week_start.day}, {week_start.year} - {week_end.month}.{week_end.day}, {week_end.year}"
+                
+        except Exception as e:
+            self.logger.error(f"计算周日期区间出错: {e}, 输入日期: {week_start_date_str}")
+            return week_start_date_str  # 出错时返回原始值
         
     def _generate_stats_table(self, stats_list):
         """生成统计数据表格的Markdown格式"""
         if not stats_list:
             return "暂无统计数据"
             
-        table = "| 周起始日期 | 总使用时长 | 工作日使用 | 周末使用 | 日均使用 |\n"
-        table += "|------------|------------|------------|----------|----------|\n"
+        # 更新表格标题，将"周起始日期"改为"周日期区间"
+        table = "| 周日期区间 | 总使用时长 | 工作日使用 | 周末使用 | 日均使用 | 状态 |\n"
+        table += "|------------|------------|------------|----------|----------|------|\n"
         
         for stats in stats_list:
-            week_start = stats.get('week_start_str', stats.get('date_str', '未知'))
+            # 获取周起始日期的ISO格式（YYYY-MM-DD）
+            week_start_iso = stats.get('week_start', '')
+            
+            # 如果没有ISO格式，尝试使用原有的显示格式
+            if not week_start_iso:
+                week_date_range = stats.get('week_start_str', '未知')
+            else:
+                # 计算并格式化周的日期区间
+                week_date_range = self._get_week_date_range(week_start_iso)
+            
             total_time = stats.get('week', '00:00:00')
             weekend_time = stats.get('weekend', '00:00:00')
             
@@ -89,7 +150,21 @@ class ReadmeUpdater:
             seconds = int(avg_daily_seconds % 60)
             avg_time = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
             
-            table += f"| {week_start} | {total_time} | {workday_time} | {weekend_time} | {avg_time} |\n"
+            # 判断是否满足状态条件：总时长>50小时且周末>5小时
+            # 方法1：直接使用秒数计算
+            total_hours = week_seconds / 3600
+            weekend_hours = weekend_seconds / 3600
+            
+            # 方法2：如果没有秒数，则使用格式化的时间字符串
+            if week_seconds == 0:
+                total_hours = self._time_string_to_hours(total_time)
+            if weekend_seconds == 0:
+                weekend_hours = self._time_string_to_hours(weekend_time)
+                
+            # 确定状态标记
+            status = "✅" if total_hours > 50 and weekend_hours > 5 else "❎"
+            
+            table += f"| {week_date_range} | {total_time} | {workday_time} | {weekend_time} | {avg_time} | {status} |\n"
             
         return table
         
