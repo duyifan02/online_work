@@ -1,2 +1,3 @@
-/monitoring_data
+# /monitoring_data
 /__pycache__
+*.jpg

@@ -1,0 +1,17 @@
+{
+  "date": "2025-04-02",
+  "week_start": "2025-03-31",
+  "last_update": "2025-04-02T13:45:04.816401",
+  "date_str": "2025年04月02日",
+  "date_ymd": "2025-04-02",
+  "weekday": "周三",
+  "week_start_str": "2025年03月31日",
+  "last_update_str": "2025-04-02 13:45:04",
+  "today_seconds": 28.800416707992554,
+  "week_seconds": 28.800416707992554,
+  "weekend_seconds": 0,
+  "today": "00:00:28",
+  "week": "00:00:28",
+  "weekend": "00:00:00",
+  "is_weekend": false
+}

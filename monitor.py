@@ -9,6 +9,7 @@ import numpy as np
 import logging
 import threading
 import shutil
+import glob
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
@@ -30,11 +31,21 @@ class MonitorSystem:
         if not os.path.exists(self.STATS_DIR):
             os.makedirs(self.STATS_DIR)
         
+        # 设置周统计数据目录
+        self.WEEKLY_STATS_DIR = os.path.join(self.STATS_DIR, "weekly")
+        if not os.path.exists(self.WEEKLY_STATS_DIR):
+            os.makedirs(self.WEEKLY_STATS_DIR)
+        
         self.STATS_FILE = os.path.join(self.STATS_DIR, "usage_stats.json")
         
         # 设置当天日期目录
         self.current_date = datetime.datetime.now().strftime("%Y%m%d")
         self.update_daily_directory()
+        
+        # 获取当前周的起始日期
+        today = datetime.date.today()
+        self.current_week_start = today - datetime.timedelta(days=today.weekday())
+        self.current_week_file = self._get_week_stats_file(self.current_week_start)
         
         self.interval = interval
         self.running = False
@@ -246,6 +257,73 @@ class MonitorSystem:
             # 休眠一秒
             time.sleep(1)
                 
+    def _get_week_stats_file(self, week_start_date):
+        """获取指定周的统计文件路径"""
+        week_str = week_start_date.strftime("%Y%m%d")
+        return os.path.join(self.WEEKLY_STATS_DIR, f"week_{week_str}.json")
+        
+    def get_available_weeks(self):
+        """获取所有可用的周统计数据"""
+        weeks = []
+        pattern = os.path.join(self.WEEKLY_STATS_DIR, "week_*.json")
+        for file_path in glob.glob(pattern):
+            file_name = os.path.basename(file_path)
+            # 从文件名中提取日期 (week_YYYYMMDD.json)
+            if file_name.startswith("week_") and file_name.endswith(".json"):
+                date_str = file_name[5:-5]  # 提取YYYYMMDD部分
+                try:
+                    year = int(date_str[:4])
+                    month = int(date_str[4:6])
+                    day = int(date_str[6:8])
+                    week_date = datetime.date(year, month, day)
+                    
+                    # 加载文件以获取更多信息
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            stats = json.load(f)
+                            week_info = {
+                                'date': week_date,
+                                'week_start': stats.get('week_start', ''),
+                                'week_start_str': stats.get('week_start_str', ''),
+                                'week_seconds': float(stats.get('week_seconds', 0)),
+                                'week': stats.get('week', '00:00:00'),
+                                'weekend_seconds': float(stats.get('weekend_seconds', 0)),
+                                'weekend': stats.get('weekend', '00:00:00'),
+                                'file_path': file_path
+                            }
+                            weeks.append(week_info)
+                    except Exception as e:
+                        logging.error(f"读取周统计文件出错: {e}")
+                        # 如果文件无法读取，仍然添加基本信息
+                        weeks.append({
+                            'date': week_date,
+                            'week_start': week_date.isoformat(),
+                            'week_start_str': week_date.strftime("%Y年%m月%d日"),
+                            'week': '00:00:00',
+                            'weekend': '00:00:00',
+                            'file_path': file_path
+                        })
+                except ValueError:
+                    # 如果日期格式不正确，跳过
+                    continue
+                    
+        # 按日期降序排序（最近的周在前）
+        weeks.sort(key=lambda x: x['date'], reverse=True)
+        return weeks
+
+    def load_weekly_stats(self, week_start_date):
+        """加载指定周的统计数据"""
+        stats_file = self._get_week_stats_file(week_start_date)
+        
+        if os.path.exists(stats_file):
+            try:
+                with open(stats_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception as e:
+                logging.error(f"加载周统计数据出错: {e}")
+                
+        return None
+        
     def load_stats(self):
         """加载统计数据"""
         try:
@@ -256,7 +334,8 @@ class MonitorSystem:
                 # 检查是否是今天的数据
                 today = datetime.date.today().isoformat()
                 if stats.get('date') == today:
-                    self.total_time_today = stats.get('today', 0)
+                    # 确保加载的是数值类型
+                    self.total_time_today = float(stats.get('today_seconds', 0))
                 else:
                     self.total_time_today = 0
                     
@@ -266,11 +345,18 @@ class MonitorSystem:
                 week_start = (today - datetime.timedelta(days=today.weekday())).isoformat()
                 
                 if stats.get('week_start') == week_start:
-                    self.total_time_week = stats.get('week', 0)
-                    self.total_time_weekend = stats.get('weekend', 0)  # 加载周末时间
+                    # 确保加载的是数值类型 
+                    self.total_time_week = float(stats.get('week_seconds', 0))
+                    self.total_time_weekend = float(stats.get('weekend_seconds', 0))
                 else:
-                    self.total_time_week = 0
-                    self.total_time_weekend = 0
+                    # 尝试从周统计文件加载数据
+                    week_stats = self.load_weekly_stats(self.current_week_start)
+                    if week_stats:
+                        self.total_time_week = float(week_stats.get('week_seconds', 0))
+                        self.total_time_weekend = float(week_stats.get('weekend_seconds', 0))
+                    else:
+                        self.total_time_week = 0
+                        self.total_time_weekend = 0
         except Exception as e:
             logging.error(f"加载统计数据时出错: {e}")
             self.total_time_today = 0
@@ -278,7 +364,7 @@ class MonitorSystem:
             self.total_time_weekend = 0
             
     def save_stats(self):
-        """保存统计数据 - 使用更一致和人性化的时间格式"""
+        """保存统计数据 - 使用更一致和人性化的时间格式，支持多周统计"""
         try:
             # 更新当前会话时间
             if self.running and not self.paused and self.start_time:
@@ -346,6 +432,10 @@ class MonitorSystem:
             with open(daily_stats_file, 'w', encoding='utf-8') as f:
                 json.dump(stats, f, ensure_ascii=False, indent=2)
                 
+            # 保存到本周统计文件（周一为起始）
+            with open(self.current_week_file, 'w', encoding='utf-8') as f:
+                json.dump(stats, f, ensure_ascii=False, indent=2)
+                
         except Exception as e:
             logging.error(f"保存统计数据时出错: {e}")
             
@@ -366,7 +456,15 @@ class MonitorSystem:
         logging.info("已重置每日统计数据")
         
     def _reset_weekly_stats(self):
-        """重置每周统计和周末统计"""
+        """重置每周统计和周末统计，并保留上周数据"""
+        # 在重置之前，确保当前周的数据已经保存
+        self.save_stats()
+        
+        # 更新当前周的起始日期
+        today = datetime.date.today()
+        self.current_week_start = today - datetime.timedelta(days=today.weekday())
+        self.current_week_file = self._get_week_stats_file(self.current_week_start)
+        
         self.total_time_week = 0
         self.total_time_weekend = 0  # 同时重置周末时间
         self.save_stats()
@@ -374,10 +472,16 @@ class MonitorSystem:
         
     def format_time(self, seconds):
         """将秒数格式化为时:分:秒的形式"""
-        hours = int(seconds // 3600)
-        minutes = int((seconds % 3600) // 60)
-        secs = int(seconds % 60)
-        return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+        try:
+            # 确保seconds是数值类型
+            seconds = float(seconds) if isinstance(seconds, str) else seconds
+            hours = int(seconds // 3600)
+            minutes = int((seconds % 3600) // 60)
+            secs = int(seconds % 60)
+            return f"{hours:02d}:{minutes:02d}:{secs:02d}"
+        except (TypeError, ValueError) as e:
+            logging.error(f"格式化时间出错: {e}, 提供的值: {seconds}, 类型: {type(seconds)}")
+            return "00:00:00"  # 返回默认值
 
     def start(self):
         """开始检测"""

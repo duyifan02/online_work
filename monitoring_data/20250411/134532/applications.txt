@@ -1,0 +1,339 @@
+记录时间: 2025-04-11 13:45:34
+
+当前运行的应用程序:
+PID: 0, 名称: System Idle Process, 用户: NT AUTHORITY\SYSTEM
+PID: 4, 名称: System, 用户: NT AUTHORITY\SYSTEM
+PID: 232, 名称: Registry, 用户: NT AUTHORITY\SYSTEM
+PID: 268, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 612, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 752, 名称: smss.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 820, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 852, 名称: csrss.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 920, 名称: cmd.exe, 用户: PC-20240921UCSH\Administrator
+PID: 1044, 名称: sihost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 1096, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 1108, 名称: wininit.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 1116, 名称: csrss.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 1208, 名称: winlogon.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 1268, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 1308, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 1324, 名称: services.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 1348, 名称: lsass.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 1368, 名称: svchost.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 1472, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 1488, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 1492, 名称: fontdrvhost.exe, 用户: Font Driver Host\UMFD-1
+PID: 1500, 名称: fontdrvhost.exe, 用户: Font Driver Host\UMFD-0
+PID: 1572, 名称: WUDFHost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 1644, 名称: svchost.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 1688, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 1692, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 1768, 名称: WUDFHost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 1828, 名称: WUDFHost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 1888, 名称: WUDFHost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 1952, 名称: WUDFHost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 2008, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 2032, 名称: dwm.exe, 用户: Window Manager\DWM-1
+PID: 2144, 名称: ZSpaceSync.exe, 用户: PC-20240921UCSH\Administrator
+PID: 2152, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 2248, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 2252, 名称: svchost.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 2260, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 2316, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 2328, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 2336, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 2352, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 2364, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 2428, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 2528, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 2540, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 2580, 名称: IntelCpHDCPSvc.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 2588, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 2596, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 2604, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 2680, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 2692, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 2704, 名称: ECAgent.exe, 用户: PC-20240921UCSH\Administrator
+PID: 2740, 名称: MoTTYnew.exe, 用户: PC-20240921UCSH\Administrator
+PID: 2964, 名称: svchost.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 3004, 名称: dllhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 3024, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 3068, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 3132, 名称: syncstate.exe, 用户: PC-20240921UCSH\Administrator
+PID: 3148, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 3152, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 3164, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 3172, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 3184, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 3272, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 3296, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 3684, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 3760, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 3864, 名称: dasHost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 3936, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 3988, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 4016, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4052, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 4088, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4104, 名称: msedgewebview2.exe, 用户: PC-20240921UCSH\Administrator
+PID: 4152, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 4160, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4168, 名称: MemCompression, 用户: NT AUTHORITY\SYSTEM
+PID: 4312, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4340, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4408, 名称: WmiPrvSE.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4456, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 4488, 名称: Clash for Windows.exe, 用户: PC-20240921UCSH\Administrator
+PID: 4492, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4588, 名称: RtkAudioService64.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4652, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 4684, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4708, 名称: UniAccessAgent.exe, 用户: None
+PID: 4820, 名称: 极空间.exe, 用户: PC-20240921UCSH\Administrator
+PID: 4876, 名称: wlanext.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 4912, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 5008, 名称: XWin_MobaX.exe, 用户: PC-20240921UCSH\Administrator
+PID: 5044, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 5188, 名称: LvPolicyReport.exe, 用户: None
+PID: 5240, 名称: spoolsv.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 5272, 名称: Clash for Windows.exe, 用户: PC-20240921UCSH\Administrator
+PID: 5344, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 5388, 名称: svchost.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 5428, 名称: UniAccessAgentDaemon.exe, 用户: None
+PID: 5588, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 5616, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 5744, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 5796, 名称: zotero.exe, 用户: PC-20240921UCSH\Administrator
+PID: 5812, 名称: cmd.exe, 用户: PC-20240921UCSH\Administrator
+PID: 5824, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 5852, 名称: WmiPrvSE.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 6336, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 6344, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6376, 名称: ipfsvc.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 6388, 名称: aTrustAgent.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6396, 名称: eaio_service.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6412, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6424, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 6428, 名称: OneApp.IGCC.WinService.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6440, 名称: jhi_service.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6448, 名称: ipf_uf.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6456, 名称: LNBITSSvc.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6480, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6496, 名称: LenovoUtilityService.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6592, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6608, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 6640, 名称: WMIRegistrationService.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 6656, 名称: clash-win64.exe, 用户: PC-20240921UCSH\Administrator
+PID: 6668, 名称: vECAgent.exe, 用户: PC-20240921UCSH\Administrator
+PID: 6672, 名称: svchost.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 6732, 名称: cmd.exe, 用户: PC-20240921UCSH\Administrator
+PID: 6832, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 7012, 名称: SangforPromoteService.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 7020, 名称: SangforUsbService.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 7036, 名称: SystemSettingsBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 7040, 名称: IntelAudioService.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 7048, 名称: SunloginClient.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 7060, 名称: SangforPromoteService.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 7076, 名称: SangforPWEx.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 7088, 名称: Clash for Windows.exe, 用户: PC-20240921UCSH\Administrator
+PID: 7116, 名称: ToDesk.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 7184, 名称: DLPExtend.exe, 用户: None
+PID: 7400, 名称: 极空间.exe, 用户: PC-20240921UCSH\Administrator
+PID: 7560, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 7620, 名称: python.exe, 用户: PC-20240921UCSH\Administrator
+PID: 7768, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 7828, 名称: ApplicationFrameHost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 8120, 名称: lenovodrvsrv.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 8416, 名称: ms-teams.exe, 用户: PC-20240921UCSH\Administrator
+PID: 8432, 名称: AcutaDBCore.exe, 用户: None
+PID: 8484, 名称: aTrustTray.exe, 用户: PC-20240921UCSH\Administrator
+PID: 8632, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 8692, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 8724, 名称: unsecapp.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 8800, 名称: aTrustTray.exe, 用户: PC-20240921UCSH\Administrator
+PID: 9004, 名称: SunloginClient.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 9092, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 9144, 名称: sunlogin_guard.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 9200, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 9348, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 9500, 名称: TextInputHost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 9528, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 9620, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 9624, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 9636, 名称: perl.exe, 用户: PC-20240921UCSH\Administrator
+PID: 9680, 名称: SystemSettings.exe, 用户: PC-20240921UCSH\Administrator
+PID: 9892, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 9904, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 10020, 名称: DLPOCR.exe, 用户: None
+PID: 10024, 名称: Locator.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 10208, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10220, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10236, 名称: dllhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10264, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10368, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10384, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10416, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10472, 名称: audiodg.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 10488, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10616, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 10624, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10644, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10648, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10708, 名称: bash.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10716, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10744, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10812, 名称: ipf_helper.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10836, 名称: AutoModeDetect.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 10864, 名称: RAVBg64.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 10880, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 10892, 名称: taskhostw.exe, 用户: PC-20240921UCSH\Administrator
+PID: 10988, 名称: SangforUDProtectEx.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 11024, 名称: MoTTYnew.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11044, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11160, 名称: eaio_agent.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11176, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 11236, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 11272, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 11304, 名称: MobaSCPRinew.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11308, 名称: DLPCheck.exe, 用户: None
+PID: 11336, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 11340, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11568, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11644, 名称: updater.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 11696, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11804, 名称: explorer.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11856, 名称: StartMenuExperienceHost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 11928, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 12084, 名称: WmiApSrv.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 12316, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 12448, 名称: updater.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 12488, 名称: eaio_agent.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 12512, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 12616, 名称: ChsIME.exe, 用户: PC-20240921UCSH\Administrator
+PID: 12620, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 12704, 名称: WWAHost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 12720, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 12796, 名称: unsecapp.exe, 用户: PC-20240921UCSH\Administrator
+PID: 12900, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 12916, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 12952, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 12964, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 13004, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 13060, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 13148, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 13452, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 13480, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 13492, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 13560, 名称: aTrustXtunnel.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 13596, 名称: lvnetcheck.exe, 用户: None
+PID: 13628, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 13820, 名称: ToDesk.exe, 用户: PC-20240921UCSH\Administrator
+PID: 14116, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 14240, 名称: UniAccessAgentTray.exe, 用户: None
+PID: 14332, 名称: LvaNac.exe, 用户: None
+PID: 14432, 名称: DingTalk.exe, 用户: PC-20240921UCSH\Administrator
+PID: 14556, 名称: aTrustXtunnel.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 14716, 名称: ctfmon.exe, 用户: PC-20240921UCSH\Administrator
+PID: 14784, 名称: conhost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 14960, 名称: HipsTray.exe, 用户: PC-20240921UCSH\Administrator
+PID: 14976, 名称: DLPCheck.exe, 用户: None
+PID: 14988, 名称: dllhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 14996, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 15116, 名称: Tinaiat.exe, 用户: None
+PID: 15180, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 15184, 名称: Tinaiat.exe, 用户: None
+PID: 15196, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 15208, 名称: Clash for Windows.exe, 用户: PC-20240921UCSH\Administrator
+PID: 15464, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 15480, 名称: powershell.exe, 用户: PC-20240921UCSH\Administrator
+PID: 15556, 名称: svchost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 15696, 名称: HipsDaemon.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 15728, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 15736, 名称: aTrustTray.exe, 用户: PC-20240921UCSH\Administrator
+PID: 15932, 名称: DLPService.exe, 用户: None
+PID: 16068, 名称: ZSpaceSync.exe, 用户: PC-20240921UCSH\Administrator
+PID: 16084, 名称: FnHotkeyCapsLKNumLK.exe, 用户: PC-20240921UCSH\Administrator
+PID: 16164, 名称: FnHotkeyUtility.exe, 用户: PC-20240921UCSH\Administrator
+PID: 16376, 名称: cmd.exe, 用户: PC-20240921UCSH\Administrator
+PID: 16400, 名称: cmd.exe, 用户: PC-20240921UCSH\Administrator
+PID: 16752, 名称: svchost.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 16996, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 17068, 名称: SunloginClient.exe, 用户: PC-20240921UCSH\Administrator
+PID: 17136, 名称: DingTalk.exe, 用户: PC-20240921UCSH\Administrator
+PID: 17140, 名称: usysdiag.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 17168, 名称: DingTalk.exe, 用户: PC-20240921UCSH\Administrator
+PID: 17432, 名称: DingTalk.exe, 用户: PC-20240921UCSH\Administrator
+PID: 17800, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 18188, 名称: WinRAR.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18288, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18340, 名称: aTrustTray.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18468, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18544, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18664, 名称: ms-teams.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18688, 名称: cygtermd.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18700, 名称: msedgewebview2.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18712, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18716, 名称: ssh.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18728, 名称: msedgewebview2.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18904, 名称: msedgewebview2.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18916, 名称: msedgewebview2.exe, 用户: PC-20240921UCSH\Administrator
+PID: 18968, 名称: msedgewebview2.exe, 用户: PC-20240921UCSH\Administrator
+PID: 19112, 名称: msedgewebview2.exe, 用户: PC-20240921UCSH\Administrator
+PID: 19508, 名称: MoUsoCoreWorker.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 19524, 名称: et.exe, 用户: PC-20240921UCSH\Administrator
+PID: 19580, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 19644, 名称: 极空间.exe, 用户: PC-20240921UCSH\Administrator
+PID: 19648, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 19848, 名称: MoTTYnew.exe, 用户: PC-20240921UCSH\Administrator
+PID: 19984, 名称: wget.exe, 用户: PC-20240921UCSH\Administrator
+PID: 20012, 名称: MobaXterm.exe, 用户: PC-20240921UCSH\Administrator
+PID: 20156, 名称: perl.exe, 用户: PC-20240921UCSH\Administrator
+PID: 20172, 名称: 极空间.exe, 用户: PC-20240921UCSH\Administrator
+PID: 20460, 名称: wget.exe, 用户: PC-20240921UCSH\Administrator
+PID: 21008, 名称: zotero.exe, 用户: PC-20240921UCSH\Administrator
+PID: 21084, 名称: TrustedInstaller.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 21624, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 21668, 名称: DingTalk.exe, 用户: PC-20240921UCSH\Administrator
+PID: 21768, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 21780, 名称: aTrustAgent.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 21796, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 22156, 名称: RuntimeBroker.exe, 用户: PC-20240921UCSH\Administrator
+PID: 22496, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 22544, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 22596, 名称: powershell.exe, 用户: PC-20240921UCSH\Administrator
+PID: 22632, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 22796, 名称: updater.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 22872, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 23364, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 23656, 名称: DingTalk.exe, 用户: PC-20240921UCSH\Administrator
+PID: 23744, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 23776, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 23840, 名称: TiWorker.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 24184, 名称: MicrosoftEdgeUpdate.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 24352, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 24416, 名称: updater.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 24856, 名称: zotero.exe, 用户: PC-20240921UCSH\Administrator
+PID: 25132, 名称: powershell.exe, 用户: PC-20240921UCSH\Administrator
+PID: 25204, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 25216, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 25308, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 25328, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 25340, 名称: chrome.exe, 用户: PC-20240921UCSH\Administrator
+PID: 25592, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 25660, 名称: sppsvc.exe, 用户: NT AUTHORITY\NETWORK SERVICE
+PID: 26264, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 26452, 名称: powershell.exe, 用户: PC-20240921UCSH\Administrator
+PID: 27008, 名称: svchost.exe, 用户: NT AUTHORITY\LOCAL SERVICE
+PID: 27172, 名称: taskhostw.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 27176, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 27608, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 28020, 名称: ssh.exe, 用户: PC-20240921UCSH\Administrator
+PID: 28464, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 28596, 名称: python.exe, 用户: PC-20240921UCSH\Administrator
+PID: 28616, 名称: MicrosoftEdgeUpdate.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 28848, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 28980, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
+PID: 29312, 名称: Code.exe, 用户: PC-20240921UCSH\Administrator
+PID: 29320, 名称: conhost.exe, 用户: PC-20240921UCSH\Administrator
+PID: 29428, 名称: cmd.exe, 用户: PC-20240921UCSH\Administrator
+PID: 29512, 名称: svchost.exe, 用户: NT AUTHORITY\SYSTEM
