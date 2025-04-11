@@ -268,7 +268,7 @@ class MonitoringGUI:
             # 更新UI
             if success:
                 self.root.after(0, lambda: self.sync_status_label.config(
-                    text=f"上次同步: {datetime.datetime.now().strftime('%H:%M:%S')}",
+                    text=f"上次同步: {datetime.datetime.now().strftime('%d/%m/%Y,%H:%M:%S')}",
                     foreground="green"
                 ))
             else:
