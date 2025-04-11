@@ -1,17 +1,17 @@
 {
   "date": "2025-04-11",
   "week_start": "2025-04-07",
-  "last_update": "2025-04-11T15:50:28.214480",
+  "last_update": "2025-04-11T15:51:20.668182",
   "date_str": "2025年04月11日",
   "date_ymd": "2025-04-11",
   "weekday": "周五",
   "week_start_str": "2025年04月07日",
-  "last_update_str": "2025-04-11 15:50:28",
-  "today_seconds": 4.305524587631226,
-  "week_seconds": 4.305524587631226,
+  "last_update_str": "2025-04-11 15:51:20",
+  "today_seconds": 14.281651258468628,
+  "week_seconds": 14.281651258468628,
   "weekend_seconds": 0.0,
-  "today": "00:00:04",
-  "week": "00:00:04",
+  "today": "00:00:14",
+  "week": "00:00:14",
   "weekend": "00:00:00",
   "is_weekend": false
 }
