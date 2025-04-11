@@ -3,6 +3,8 @@ from tkinter import ttk, messagebox
 import time
 import threading
 from monitor import MonitorSystem
+from git_sync import GitSync
+from readme_updater import ReadmeUpdater
 import os
 import webbrowser
 import datetime
@@ -18,6 +20,15 @@ class MonitoringGUI:
         self.monitor = MonitorSystem(interval=1800)  # 固定为30分钟(1800秒)
         self.monitor.set_status_callback(self.update_status)
         self.monitor.set_stats_callback(self.update_stats)
+        
+        # 项目根目录
+        self.project_dir = os.path.dirname(os.path.abspath(__file__))
+        
+        # 初始化Git同步器
+        self.git_sync = GitSync(self.project_dir)
+        
+        # 初始化README更新器
+        self.readme_updater = ReadmeUpdater(self.project_dir)
         
         self._create_widgets()
         self._center_window()
@@ -46,6 +57,7 @@ class MonitoringGUI:
         style.configure('Weekend.TLabel', foreground='blue')
         style.configure('Info.TLabel', foreground='gray')
         style.configure('Header.TLabel', font=('微软雅黑', 12, 'bold'))
+        style.configure('Sync.TButton', foreground='green')
         
         # 创建主框架
         main_frame = ttk.Frame(self.root, padding="20")
@@ -112,7 +124,7 @@ class MonitoringGUI:
         
         # 创建按钮框架
         btn_frame = ttk.Frame(main_frame)
-        btn_frame.pack(pady=20)
+        btn_frame.pack(pady=10)
         
         # 开始按钮
         self.start_btn = ttk.Button(btn_frame, text="开始", command=self.start_monitoring)
@@ -125,6 +137,23 @@ class MonitoringGUI:
         # 停止按钮
         self.stop_btn = ttk.Button(btn_frame, text="停止", command=self.stop_monitoring, state=tk.DISABLED)
         self.stop_btn.pack(side=tk.LEFT, padx=10)
+        
+        # 添加同步按钮框架
+        sync_frame = ttk.Frame(main_frame)
+        sync_frame.pack(fill=tk.X, pady=10)
+        
+        # 同步按钮
+        self.sync_btn = ttk.Button(
+            sync_frame, 
+            text="同步数据", 
+            command=self.sync_data,
+            style='Sync.TButton'
+        )
+        self.sync_btn.pack(pady=5)
+        
+        # 同步状态标签
+        self.sync_status_label = ttk.Label(sync_frame, text="未同步", style='Info.TLabel')
+        self.sync_status_label.pack(pady=5)
         
         # 添加历史数据查看框架
         history_frame = ttk.LabelFrame(main_frame, text="历史数据", padding="10")
@@ -195,6 +224,66 @@ class MonitoringGUI:
         # 初始更新周统计显示
         if available_weeks:
             self.update_week_stats_display(available_weeks[0])
+            
+    def sync_data(self):
+        """与GitHub同步数据"""
+        # 禁用同步按钮，避免重复点击
+        self.sync_btn.config(state=tk.DISABLED)
+        self.sync_status_label.config(text="同步中...", foreground="blue")
+        
+        # 创建同步线程
+        sync_thread = threading.Thread(target=self._sync_thread)
+        sync_thread.daemon = True
+        sync_thread.start()
+        
+    def _sync_thread(self):
+        """在线程中执行同步，避免阻塞UI"""
+        try:
+            # 确保在同步前保存最新统计数据
+            if hasattr(self, 'monitor') and self.monitor:
+                self.monitor.save_stats()
+                
+            # 更新README.md中的统计数据
+            self.root.after(0, lambda: self.sync_status_label.config(
+                text="正在更新README...",
+                foreground="blue"
+            ))
+            readme_updated = self.readme_updater.update_readme()
+            if not readme_updated:
+                self.root.after(0, lambda: self.sync_status_label.config(
+                    text="README更新失败",
+                    foreground="red"
+                ))
+                return
+                
+            # 执行Git同步
+            self.root.after(0, lambda: self.sync_status_label.config(
+                text="正在同步数据...",
+                foreground="blue"
+            ))
+            success, message = self.git_sync.sync(
+                f"自动同步统计数据 - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            )
+            
+            # 更新UI
+            if success:
+                self.root.after(0, lambda: self.sync_status_label.config(
+                    text=f"上次同步: {datetime.datetime.now().strftime('%H:%M:%S')}",
+                    foreground="green"
+                ))
+            else:
+                self.root.after(0, lambda: self.sync_status_label.config(
+                    text=f"同步失败: {message}",
+                    foreground="red"
+                ))
+        except Exception as e:
+            self.root.after(0, lambda: self.sync_status_label.config(
+                text=f"错误: {str(e)}",
+                foreground="red"
+            ))
+        finally:
+            # 重新启用同步按钮
+            self.root.after(0, lambda: self.sync_btn.config(state=tk.NORMAL))
             
     def view_history_data(self):
         """查看历史数据"""

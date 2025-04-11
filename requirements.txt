@@ -3,3 +3,4 @@ psutil>=5.8.0
 pillow>=8.0.0
 numpy>=1.19.0
 # tkinter通常随Python一起安装，无需单独安装
+# git功能使用系统git命令，确保已安装git
