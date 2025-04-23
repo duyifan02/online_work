@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员仪表板 - 工作监控系统</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: #2c3e50;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px 0;
+            border-top: 1px solid #ddd;
+            color: #888;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            flex: 1;
+            text-align: center;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-box h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        .stat-box .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        nav {
+            background-color: #34495e;
+            margin-bottom: 20px;
+        }
+        nav .container {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 20px;
+        }
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+        nav ul li {
+            margin-right: 20px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+        nav ul li a:hover {
+            background-color: #2c3e50;
+        }
+        .user-info {
+            color: white;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            color: #333;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .tab-container {
+            margin-top: 20px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+        .tab {
+            padding: 10px 15px;
+            cursor: pointer;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+        }
+        .tab-content {
+            padding: 15px 0;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        .thumb {
+            width: 100px;
+            height: auto;
+            cursor: pointer;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+        .modal-content {
+            margin: 5% auto;
+            padding: 20px;
+            width: 80%;
+            max-width: 700px;
+            background-color: #fff;
+            position: relative;
+            border-radius: 5px;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #333;
+        }
+        .modal-image {
+            width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .pagination a {
+            color: #3498db;
+            padding: 8px 16px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            margin: 0 4px;
+        }
+        .pagination a.active {
+            background-color: #3498db;
+            color: white;
+            border: 1px solid #3498db;
+        }
+        .pagination a:hover:not(.active) {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>工作监控系统服务器</h1>
+            <p>管理员仪表板</p>
+        </div>
+    </div>
+
+    <nav>
+        <div class="container">
+            <ul>
+                <li><a href="/dashboard">仪表板</a></li>
+                <li><a href="/dashboard/users">用户管理</a></li>
+                <li><a href="/dashboard/records">工作记录</a></li>
+                <li><a href="/dashboard/files">文件管理</a></li>
+            </ul>
+            <div class="user-info">
+                <span>欢迎，{{ username }}</span>
+                <a href="/logout" style="margin-left: 15px; color: #e74c3c;">登出</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>系统概览</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>注册用户</h3>
+                    <div class="number">{{ user_count }}</div>
+                </div>
+                <div class="stat-box">
+                    <h3>工作记录</h3>
+                    <div class="number">{{ record_count }}</div>
+                </div>
+                <div class="stat-box">
+                    <h3>上传文件</h3>
+                    <div class="number">{{ file_count }}</div>
+                </div>
+                <div class="stat-box">
+                    <h3>今日活跃</h3>
+                    <div class="number">{{ active_today }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>最近活动</h2>
+            <div class="tab-container">
+                <div class="tabs">
+                    <div class="tab active" data-tab="recent-users">最近用户</div>
+                    <div class="tab" data-tab="recent-records">最近记录</div>
+                    <div class="tab" data-tab="recent-files">最近文件</div>
+                </div>
+                
+                <div class="tab-content">
+                    <div class="tab-pane active" id="recent-users">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户名</th>
+                                    <th>创建时间</th>
+                                    <th>是否管理员</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.uid }}</td>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.created_at }}</td>
+                                    <td>{{ "是" if user.is_admin else "否" }}</td>
+                                    <td>
+                                        <a href="/dashboard/user/{{ user.uid }}" class="btn" style="padding: 5px 10px;">查看</a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5">暂无用户数据</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tab-pane" id="recent-records">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>用户</th>
+                                    <th>类型</th>
+                                    <th>时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in records %}
+                                <tr>
+                                    <td>{{ loop.index }}</td>
+                                    <td>{{ record.username }}</td>
+                                    <td>{{ record.type }}</td>
+                                    <td>{{ record.timestamp }}</td>
+                                    <td>
+                                        <a href="/dashboard/record/{{ loop.index }}" class="btn" style="padding: 5px 10px;">查看</a>
+                                    </td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="5">暂无记录数据</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="tab-pane" id="recent-files">
+                        <div class="files-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
+                            {% for file in files %}
+                            <div class="file-item" style="text-align: center;">
+                                {% if file.type == 'image' %}
+                                <img src="{{ file.url }}" alt="{{ file.name }}" class="thumb" onclick="openModal('{{ file.url }}')">
+                                {% else %}
+                                <div style="width: 100px; height: 100px; background: #eee; display: flex; align-items: center; justify-content: center;">
+                                    文件
+                                </div>
+                                {% endif %}
+                                <div style="margin-top: 5px; font-size: 12px;">{{ file.name }}</div>
+                                <div style="font-size: 10px; color: #888;">{{ file.user }}</div>
+                            </div>
+                            {% else %}
+                            <div style="grid-column: 1 / -1; text-align: center; padding: 20px;">
+                                暂无文件数据
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>系统状态</h2>
+            <p>服务器运行状态: <strong>{{ server_status }}</strong></p>
+            <p>服务器启动时间: <strong>{{ server_start_time }}</strong></p>
+            <p>服务器版本: <strong>{{ server_version }}</strong></p>
+            <p>API请求总数: <strong>{{ api_count }}</strong></p>
+        </div>
+    </div>
+
+    <!-- 图片查看模态窗口 -->
+    <div id="imageModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <img id="modalImage" class="modal-image" src="" alt="">
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>&copy; 2025 工作监控系统 - 服务器端</p>
+        </div>
+    </div>
+
+    <script>
+        // 切换标签页
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // 移除所有active类
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                
+                // 添加active类到当前标签
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+        
+        // 图片模态窗口
+        function openModal(imgUrl) {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            modal.style.display = 'block';
+            modalImg.src = imgUrl;
+        }
+        
+        function closeModal() {
+            document.getElementById('imageModal').style.display = 'none';
+        }
+        
+        // 点击模态窗口外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('imageModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

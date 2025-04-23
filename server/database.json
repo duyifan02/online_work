@@ -1,0 +1,12 @@
+{
+  "users": [
+    {
+      "uid": "efc5a64e-58dd-496f-b417-27857858d663",
+      "username": "duyf23",
+      "password_hash": "pbkdf2:sha256:260000$tYx0WBAJSR7NPkKU$7f9b718ff38e3598491a41d841770b6c5309e7b2e423b79ea912616f61878470",
+      "is_admin": false,
+      "created_at": "2025-04-23T10:35:20.463032"
+    }
+  ],
+  "work_records": []
+}

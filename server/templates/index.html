@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作监控系统 - 服务器</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .card {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .card h2 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            color: #2c3e50;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-right: 10px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px 0;
+            border-top: 1px solid #ddd;
+            color: #888;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .stat-box {
+            flex: 1;
+            text-align: center;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .stat-box h3 {
+            margin-top: 0;
+            color: #555;
+        }
+        .stat-box .number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1>工作监控系统服务器</h1>
+            <p>统一管理用户工作监控数据</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h2>系统概览</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <h3>注册用户</h3>
+                    <div class="number">{{ user_count }}</div>
+                </div>
+                <div class="stat-box">
+                    <h3>工作记录</h3>
+                    <div class="number">{{ record_count }}</div>
+                </div>
+                <div class="stat-box">
+                    <h3>上传文件</h3>
+                    <div class="number">{{ file_count }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>系统功能</h2>
+            <p>本系统提供工作监控数据的集中管理和查看功能，包括:</p>
+            <ul>
+                <li>用户注册和认证</li>
+                <li>工作时间记录上传和统计</li>
+                <li>屏幕截图和应用程序记录管理</li>
+                <li>管理员监控和数据查看</li>
+            </ul>
+            <a href="/login" class="btn">管理员登录</a>
+            <a href="/api" class="btn">API文档</a>
+        </div>
+
+        <div class="card">
+            <h2>系统状态</h2>
+            <p>服务器运行状态: <strong>{{ server_status }}</strong></p>
+            <p>服务器启动时间: <strong>{{ server_start_time }}</strong></p>
+            <p>服务器版本: <strong>{{ server_version }}</strong></p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <div class="container">
+            <p>&copy; 2025 工作监控系统 - 服务器端</p>
+        </div>
+    </div>
+</body>
+</html>

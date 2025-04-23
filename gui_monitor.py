@@ -8,11 +8,26 @@ from readme_updater import ReadmeUpdater
 import os
 import webbrowser
 import datetime
+from auth_client import AuthClient
+from auth_gui import AuthGUI
 
 class MonitoringGUI:
-    def __init__(self, root):
+    def __init__(self, root, auth_client=None):
+        """初始化监控界面
+        
+        Args:
+            root: Tkinter根窗口
+            auth_client: 已认证的客户端对象
+        """
         self.root = root
-        self.root.title("线上工作打卡控制面板")
+        self.auth_client = auth_client
+        
+        # 检查认证状态
+        if not self.auth_client or not self.auth_client.is_authenticated():
+            messagebox.showerror("错误", "请先登录")
+            return
+            
+        self.root.title(f"线上工作打卡控制面板 - {self.auth_client.get_username()}")
         self.root.geometry("600x800")  # 增加高度以容纳周末时间显示
         self.root.resizable(False, False)
         
@@ -58,6 +73,9 @@ class MonitoringGUI:
         style.configure('Info.TLabel', foreground='gray')
         style.configure('Header.TLabel', font=('微软雅黑', 12, 'bold'))
         style.configure('Sync.TButton', foreground='green')
+        style.configure('Upload.TButton', foreground='blue')
+        style.configure('Admin.TButton', foreground='purple')
+        style.configure('Logout.TButton', foreground='red')
         
         # 创建主框架
         main_frame = ttk.Frame(self.root, padding="20")
@@ -66,6 +84,31 @@ class MonitoringGUI:
         # 标题标签
         title_label = ttk.Label(main_frame, text="自动检测系统", font=('微软雅黑', 16, 'bold'))
         title_label.pack(pady=10)
+        
+        # 添加用户信息
+        user_frame = ttk.Frame(main_frame)
+        user_frame.pack(fill=tk.X, pady=5)
+        
+        user_label = ttk.Label(user_frame, text=f"当前用户: {self.auth_client.get_username()}", font=('微软雅黑', 10))
+        user_label.pack(side=tk.LEFT)
+        
+        # 如果是管理员，显示管理员标签
+        if self.auth_client.is_admin():
+            admin_label = ttk.Label(user_frame, text="[管理员]", font=('微软雅黑', 10, 'bold'), foreground='purple')
+            admin_label.pack(side=tk.LEFT, padx=5)
+            
+            # 添加管理员面板按钮
+            admin_panel_btn = ttk.Button(
+                user_frame, 
+                text="管理员面板", 
+                command=self.open_admin_panel,
+                style='Admin.TButton'
+            )
+            admin_panel_btn.pack(side=tk.RIGHT)
+            
+        # 登出按钮
+        logout_btn = ttk.Button(user_frame, text="登出", command=self.logout, style='Logout.TButton')
+        logout_btn.pack(side=tk.RIGHT, padx=10)
         
         # 状态框架
         status_frame = ttk.LabelFrame(main_frame, text="状态", padding="10")
@@ -138,22 +181,39 @@ class MonitoringGUI:
         self.stop_btn = ttk.Button(btn_frame, text="停止", command=self.stop_monitoring, state=tk.DISABLED)
         self.stop_btn.pack(side=tk.LEFT, padx=10)
         
-        # 添加同步按钮框架
+        # 添加同步和上传按钮框架
         sync_frame = ttk.Frame(main_frame)
         sync_frame.pack(fill=tk.X, pady=10)
         
         # 同步按钮
         self.sync_btn = ttk.Button(
             sync_frame, 
-            text="同步数据", 
+            text="同步本地数据", 
             command=self.sync_data,
             style='Sync.TButton'
         )
-        self.sync_btn.pack(pady=5)
+        self.sync_btn.pack(side=tk.LEFT, padx=10, expand=True)
+        
+        # 上传按钮
+        self.upload_btn = ttk.Button(
+            sync_frame, 
+            text="上传到服务器", 
+            command=self.upload_data,
+            style='Upload.TButton'
+        )
+        self.upload_btn.pack(side=tk.RIGHT, padx=10, expand=True)
+        
+        # 同步状态框架
+        status_info_frame = ttk.Frame(main_frame)
+        status_info_frame.pack(fill=tk.X)
         
         # 同步状态标签
-        self.sync_status_label = ttk.Label(sync_frame, text="未同步", style='Info.TLabel')
-        self.sync_status_label.pack(pady=5)
+        self.sync_status_label = ttk.Label(status_info_frame, text="未同步本地", style='Info.TLabel')
+        self.sync_status_label.pack(side=tk.LEFT, pady=5, fill=tk.X, expand=True)
+        
+        # 上传状态标签
+        self.upload_status_label = ttk.Label(status_info_frame, text="未上传服务器", style='Info.TLabel')
+        self.upload_status_label.pack(side=tk.RIGHT, pady=5, fill=tk.X, expand=True)
         
         # 添加历史数据查看框架
         history_frame = ttk.LabelFrame(main_frame, text="历史数据", padding="10")
@@ -224,6 +284,142 @@ class MonitoringGUI:
         # 初始更新周统计显示
         if available_weeks:
             self.update_week_stats_display(available_weeks[0])
+            
+    def upload_data(self):
+        """将数据上传到服务器"""
+        # 禁用上传按钮，避免重复点击
+        self.upload_btn.config(state=tk.DISABLED)
+        self.upload_status_label.config(text="上传中...", foreground="blue")
+        
+        # 创建上传线程
+        upload_thread = threading.Thread(target=self._upload_thread)
+        upload_thread.daemon = True
+        upload_thread.start()
+        
+    def _upload_thread(self):
+        """在线程中执行上传，避免阻塞UI"""
+        try:
+            # 确保在上传前保存最新统计数据
+            if hasattr(self, 'monitor') and self.monitor:
+                self.monitor.save_stats()
+                
+            # 加载统计数据
+            stats_file = self.monitor.STATS_FILE
+            if os.path.exists(stats_file):
+                with open(stats_file, 'r', encoding='utf-8') as f:
+                    stats_data = f.read()
+                    
+                # 上传统计数据
+                self.root.after(0, lambda: self.upload_status_label.config(
+                    text="正在上传统计数据...",
+                    foreground="blue"
+                ))
+                
+                success, message = self.auth_client.upload_record({
+                    'type': 'stats',
+                    'data': stats_data
+                })
+                
+                if not success:
+                    self.root.after(0, lambda: self.upload_status_label.config(
+                        text=f"统计数据上传失败: {message}",
+                        foreground="red"
+                    ))
+                    return
+            
+            # 上传最近的截图和摄像头图像
+            self.root.after(0, lambda: self.upload_status_label.config(
+                text="正在上传截图和摄像头图像...",
+                foreground="blue"
+            ))
+            
+            # 获取最近的日期目录
+            available_dates = self.monitor.get_available_dates()
+            if not available_dates:
+                self.root.after(0, lambda: self.upload_status_label.config(
+                    text="没有可上传的数据",
+                    foreground="red"
+                ))
+                return
+                
+            # 取最近的日期目录
+            recent_date = available_dates[0]
+            date_dir = os.path.join(self.monitor.SAVE_DIR, recent_date)
+            
+            # 获取所有时间戳目录
+            timestamp_dirs = []
+            for item in os.listdir(date_dir):
+                item_path = os.path.join(date_dir, item)
+                if os.path.isdir(item_path) and len(item) == 6:  # 6位时间戳 (HHMMSS)
+                    timestamp_dirs.append(item)
+                    
+            # 按时间戳排序（最新的在前）
+            timestamp_dirs.sort(reverse=True)
+            
+            # 只上传最近的3个时间戳目录
+            upload_count = min(3, len(timestamp_dirs))
+            uploaded_files = 0
+            
+            for i in range(upload_count):
+                ts_dir = os.path.join(date_dir, timestamp_dirs[i])
+                
+                # 上传截图
+                screenshot_path = os.path.join(ts_dir, "screenshot.jpg")
+                if os.path.exists(screenshot_path):
+                    success, message, file_path = self.auth_client.upload_file(screenshot_path, "screenshot")
+                    if success:
+                        uploaded_files += 1
+                
+                # 上传摄像头图像
+                camera_path = os.path.join(ts_dir, "camera.jpg")
+                if os.path.exists(camera_path):
+                    success, message, file_path = self.auth_client.upload_file(camera_path, "camera")
+                    if success:
+                        uploaded_files += 1
+                
+                # 上传应用程序列表
+                apps_path = os.path.join(ts_dir, "applications.txt")
+                if os.path.exists(apps_path):
+                    success, message, file_path = self.auth_client.upload_file(apps_path, "applications")
+                    if success:
+                        uploaded_files += 1
+                        
+            # 更新UI
+            self.root.after(0, lambda: self.upload_status_label.config(
+                text=f"成功上传 {uploaded_files} 个文件",
+                foreground="green"
+            ))
+        except Exception as e:
+            self.root.after(0, lambda: self.upload_status_label.config(
+                text=f"上传错误: {str(e)}",
+                foreground="red"
+            ))
+        finally:
+            # 重新启用上传按钮
+            self.root.after(0, lambda: self.upload_btn.config(state=tk.NORMAL))
+            
+    def logout(self):
+        """用户登出"""
+        if messagebox.askokcancel("登出", "确定要登出吗？"):
+            if self.monitor.running:
+                self.monitor.stop()
+            self.auth_client.logout()
+            self.root.destroy()
+
+    def open_admin_panel(self):
+        """打开管理员面板"""
+        if not self.auth_client.is_admin():
+            messagebox.showerror("错误", "需要管理员权限")
+            return
+            
+        # 创建新窗口
+        admin_window = tk.Toplevel(self.root)
+        admin_window.title("工作监控系统 - 管理员面板")
+        admin_window.geometry("800x600")
+        admin_window.resizable(False, False)
+        
+        # 在新窗口中创建管理员面板
+        AdminPanel(admin_window, self.auth_client)
             
     def sync_data(self):
         """与GitHub同步数据"""
@@ -485,9 +681,300 @@ class MonitoringGUI:
             self.monitor.cleanup()
             self.root.destroy()
 
+
+class AdminPanel:
+    """管理员面板，用于查看所有用户的数据"""
+    
+    def __init__(self, root, auth_client):
+        """初始化管理员面板
+        
+        Args:
+            root: Tkinter根窗口
+            auth_client: 已认证的客户端对象
+        """
+        self.root = root
+        self.auth_client = auth_client
+        
+        # 检查管理员权限
+        if not self.auth_client.is_admin():
+            messagebox.showerror("错误", "需要管理员权限")
+            self.root.destroy()
+            return
+        
+        self._create_widgets()
+        self._center_window()
+        
+        # 加载用户列表
+        self.load_users()
+        
+    def _center_window(self):
+        """将窗口居中显示"""
+        self.root.update_idletasks()
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = (self.root.winfo_screenwidth() - width) // 2
+        y = (self.root.winfo_screenheight() - height) // 2
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+        
+    def _create_widgets(self):
+        """创建GUI控件"""
+        # 设置样式
+        style = ttk.Style()
+        style.configure('TLabel', font=('微软雅黑', 12))
+        style.configure('TButton', font=('微软雅黑', 12))
+        style.configure('Header.TLabel', font=('微软雅黑', 16, 'bold'))
+        style.configure('User.TFrame', relief='solid')
+        
+        # 创建主框架
+        main_frame = ttk.Frame(self.root, padding="20")
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # 标题标签
+        title_label = ttk.Label(main_frame, text="管理员面板", style='Header.TLabel')
+        title_label.pack(pady=10)
+        
+        # 创建选项卡
+        tab_control = ttk.Notebook(main_frame)
+        tab_control.pack(fill=tk.BOTH, expand=1)
+        
+        # 用户列表选项卡
+        users_tab = ttk.Frame(tab_control)
+        tab_control.add(users_tab, text="用户列表")
+        
+        # 工作记录选项卡
+        records_tab = ttk.Frame(tab_control)
+        tab_control.add(records_tab, text="工作记录")
+        
+        # 用户列表框架
+        users_frame = ttk.Frame(users_tab, padding=10)
+        users_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # 刷新按钮
+        refresh_btn = ttk.Button(users_frame, text="刷新", command=self.load_users)
+        refresh_btn.pack(pady=10)
+        
+        # 用户列表
+        user_list_frame = ttk.LabelFrame(users_frame, text="用户列表", padding=10)
+        user_list_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # 创建用户列表的滚动区域
+        user_scroll = ttk.Scrollbar(user_list_frame)
+        user_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        self.user_list_canvas = tk.Canvas(user_list_frame, yscrollcommand=user_scroll.set)
+        self.user_list_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        user_scroll.config(command=self.user_list_canvas.yview)
+        
+        self.user_list_inner = ttk.Frame(self.user_list_canvas)
+        self.user_list_canvas.create_window((0, 0), window=self.user_list_inner, anchor=tk.NW)
+        
+        self.user_list_inner.bind("<Configure>", lambda e: self.user_list_canvas.configure(
+            scrollregion=self.user_list_canvas.bbox("all")
+        ))
+        
+        # 工作记录框架
+        records_frame = ttk.Frame(records_tab, padding=10)
+        records_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # 用户选择框架
+        user_select_frame = ttk.Frame(records_frame)
+        user_select_frame.pack(fill=tk.X, pady=10)
+        
+        user_select_label = ttk.Label(user_select_frame, text="选择用户:", width=15)
+        user_select_label.pack(side=tk.LEFT)
+        
+        self.selected_user_var = tk.StringVar(value="所有用户")
+        self.user_select_combo = ttk.Combobox(user_select_frame, textvariable=self.selected_user_var, 
+                                            state="readonly", width=20)
+        self.user_select_combo.pack(side=tk.LEFT, padx=5)
+        
+        # 查看按钮
+        view_records_btn = ttk.Button(user_select_frame, text="查看记录", command=self.load_records)
+        view_records_btn.pack(side=tk.LEFT, padx=10)
+        
+        # 记录列表
+        record_list_frame = ttk.LabelFrame(records_frame, text="工作记录", padding=10)
+        record_list_frame.pack(fill=tk.BOTH, expand=True)
+        
+        # 创建记录列表的滚动区域
+        record_scroll = ttk.Scrollbar(record_list_frame)
+        record_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        self.record_list_canvas = tk.Canvas(record_list_frame, yscrollcommand=record_scroll.set)
+        self.record_list_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        record_scroll.config(command=self.record_list_canvas.yview)
+        
+        self.record_list_inner = ttk.Frame(self.record_list_canvas)
+        self.record_list_canvas.create_window((0, 0), window=self.record_list_inner, anchor=tk.NW)
+        
+        self.record_list_inner.bind("<Configure>", lambda e: self.record_list_canvas.configure(
+            scrollregion=self.record_list_canvas.bbox("all")
+        ))
+        
+    def load_users(self):
+        """加载用户列表"""
+        # 清除现有用户列表
+        for widget in self.user_list_inner.winfo_children():
+            widget.destroy()
+            
+        # 禁用刷新按钮
+        for widget in self.user_list_inner.master.master.winfo_children():
+            if isinstance(widget, ttk.Button) and widget['text'] == "刷新":
+                widget.config(state=tk.DISABLED)
+                
+        # 在新线程中加载用户列表
+        threading.Thread(target=self._load_users_thread, daemon=True).start()
+        
+    def _load_users_thread(self):
+        """在线程中加载用户列表"""
+        success, message, users = self.auth_client.get_all_users()
+        
+        # 在主线程中更新UI
+        self.root.after(0, lambda: self._update_user_list(success, message, users))
+        
+    def _update_user_list(self, success, message, users):
+        """更新用户列表"""
+        # 重新启用刷新按钮
+        for widget in self.user_list_inner.master.master.winfo_children():
+            if isinstance(widget, ttk.Button) and widget['text'] == "刷新":
+                widget.config(state=tk.NORMAL)
+                
+        if not success:
+            messagebox.showerror("错误", message)
+            return
+            
+        if not users:
+            ttk.Label(self.user_list_inner, text="暂无用户").pack(pady=10)
+            return
+            
+        # 更新用户选择下拉列表
+        user_display_values = ["所有用户"] + [user['username'] for user in users]
+        self.user_select_combo.config(values=user_display_values)
+            
+        # 添加用户列表项
+        for user in users:
+            user_frame = ttk.Frame(self.user_list_inner, style='User.TFrame', padding=10)
+            user_frame.pack(fill=tk.X, pady=5)
+            
+            # 用户名
+            username_label = ttk.Label(user_frame, text=f"用户名: {user['username']}")
+            username_label.pack(anchor=tk.W)
+            
+            # 管理员标志
+            if user.get('is_admin', False):
+                admin_label = ttk.Label(user_frame, text="[管理员]", foreground='purple')
+                admin_label.pack(anchor=tk.W)
+            else:
+                normal_label = ttk.Label(user_frame, text="[普通用户]", foreground='blue')
+                normal_label.pack(anchor=tk.W)
+            
+            # 创建时间
+            created_at = user.get('created_at', '未知')
+            created_label = ttk.Label(user_frame, text=f"创建时间: {created_at}")
+            created_label.pack(anchor=tk.W)
+            
+            # 查看按钮
+            view_btn = ttk.Button(user_frame, text="查看记录", 
+                              command=lambda u=user['username']: self.view_user_records(u))
+            view_btn.pack(anchor=tk.W, pady=5)
+            
+    def view_user_records(self, username):
+        """查看特定用户的记录"""
+        self.selected_user_var.set(username)
+        self.load_records()
+        
+    def load_records(self):
+        """加载工作记录"""
+        # 清除现有记录列表
+        for widget in self.record_list_inner.winfo_children():
+            widget.destroy()
+            
+        selected_user = self.selected_user_var.get()
+        
+        # 在新线程中加载记录
+        threading.Thread(target=self._load_records_thread, args=(selected_user,), daemon=True).start()
+        
+    def _load_records_thread(self, selected_user):
+        """在线程中加载记录"""
+        if selected_user == "所有用户":
+            success, message, records = self.auth_client.get_all_records()
+        else:
+            # 获取所有记录后过滤
+            success, message, all_records = self.auth_client.get_all_records()
+            if success:
+                records = [r for r in all_records if r.get('username') == selected_user]
+            else:
+                records = []
+        
+        # 在主线程中更新UI
+        self.root.after(0, lambda: self._update_record_list(success, message, records, selected_user))
+        
+    def _update_record_list(self, success, message, records, selected_user):
+        """更新记录列表"""
+        if not success:
+            messagebox.showerror("错误", message)
+            return
+            
+        if not records:
+            ttk.Label(self.record_list_inner, text=f"暂无 {selected_user} 的记录").pack(pady=10)
+            return
+            
+        # 添加记录列表项
+        for record in sorted(records, key=lambda x: x.get('timestamp', ''), reverse=True):
+            record_frame = ttk.Frame(self.record_list_inner, style='User.TFrame', padding=10)
+            record_frame.pack(fill=tk.X, pady=5)
+            
+            # 用户名（如果显示所有用户）
+            if selected_user == "所有用户":
+                username_label = ttk.Label(record_frame, text=f"用户: {record.get('username', '未知')}")
+                username_label.pack(anchor=tk.W)
+            
+            # 时间戳
+            timestamp = record.get('timestamp', '未知时间')
+            time_label = ttk.Label(record_frame, text=f"时间: {timestamp}")
+            time_label.pack(anchor=tk.W)
+            
+            # 记录类型
+            record_type = record.get('type', '未知类型')
+            type_label = ttk.Label(record_frame, text=f"类型: {record_type}")
+            type_label.pack(anchor=tk.W)
+            
+            # 数据预览
+            if record_type == 'stats':
+                try:
+                    stats_data = json.loads(record.get('data', '{}'))
+                    stats_preview = f"日期: {stats_data.get('date_str', '未知')}, " \
+                                   f"时长: {stats_data.get('today', '00:00:00')}"
+                    data_label = ttk.Label(record_frame, text=f"数据: {stats_preview}")
+                    data_label.pack(anchor=tk.W)
+                except:
+                    data_label = ttk.Label(record_frame, text="数据: [统计数据]")
+                    data_label.pack(anchor=tk.W)
+            else:
+                data_label = ttk.Label(record_frame, text="数据: [详细数据]")
+                data_label.pack(anchor=tk.W)
+
+
 def main():
     root = tk.Tk()
-    app = MonitoringGUI(root)
+    
+    def on_auth_success(auth_client):
+        """认证成功后的回调函数"""
+        # 隐藏认证窗口
+        root.withdraw()
+        
+        # 创建新窗口显示监控界面
+        monitor_window = tk.Toplevel(root)
+        monitor_app = MonitoringGUI(monitor_window, auth_client)
+        
+        # 当监控窗口关闭时退出程序
+        monitor_window.protocol("WM_DELETE_WINDOW", root.destroy)
+    
+    # 创建认证界面
+    auth_app = AuthGUI(root, on_auth_success)
+    
     root.mainloop()
 
 if __name__ == "__main__":
