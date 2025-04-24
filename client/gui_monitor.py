@@ -3,8 +3,6 @@ from tkinter import ttk, messagebox
 import time
 import threading
 from monitor import MonitorSystem
-from git_sync import GitSync
-from readme_updater import ReadmeUpdater
 import os
 import webbrowser
 import datetime
@@ -39,12 +37,6 @@ class MonitoringGUI:
         # 项目根目录
         self.project_dir = os.path.dirname(os.path.abspath(__file__))
         
-        # 初始化Git同步器
-        self.git_sync = GitSync(self.project_dir)
-        
-        # 初始化README更新器
-        self.readme_updater = ReadmeUpdater(self.project_dir)
-        
         self._create_widgets()
         self._center_window()
         
@@ -72,7 +64,6 @@ class MonitoringGUI:
         style.configure('Weekend.TLabel', foreground='blue')
         style.configure('Info.TLabel', foreground='gray')
         style.configure('Header.TLabel', font=('微软雅黑', 12, 'bold'))
-        style.configure('Sync.TButton', foreground='green')
         style.configure('Upload.TButton', foreground='blue')
         style.configure('Admin.TButton', foreground='purple')
         style.configure('Logout.TButton', foreground='red')
@@ -181,79 +172,29 @@ class MonitoringGUI:
         self.stop_btn = ttk.Button(btn_frame, text="停止", command=self.stop_monitoring, state=tk.DISABLED)
         self.stop_btn.pack(side=tk.LEFT, padx=10)
         
-        # 添加同步和上传按钮框架
-        sync_frame = ttk.Frame(main_frame)
-        sync_frame.pack(fill=tk.X, pady=10)
-        
-        # 同步按钮
-        self.sync_btn = ttk.Button(
-            sync_frame, 
-            text="同步本地数据", 
-            command=self.sync_data,
-            style='Sync.TButton'
-        )
-        self.sync_btn.pack(side=tk.LEFT, padx=10, expand=True)
+        # 添加上传按钮框架
+        upload_frame = ttk.Frame(main_frame)
+        upload_frame.pack(fill=tk.X, pady=10)
         
         # 上传按钮
         self.upload_btn = ttk.Button(
-            sync_frame, 
+            upload_frame, 
             text="上传到服务器", 
             command=self.upload_data,
             style='Upload.TButton'
         )
-        self.upload_btn.pack(side=tk.RIGHT, padx=10, expand=True)
-        
-        # 同步状态框架
-        status_info_frame = ttk.Frame(main_frame)
-        status_info_frame.pack(fill=tk.X)
-        
-        # 同步状态标签
-        self.sync_status_label = ttk.Label(status_info_frame, text="未同步本地", style='Info.TLabel')
-        self.sync_status_label.pack(side=tk.LEFT, pady=5, fill=tk.X, expand=True)
+        self.upload_btn.pack(fill=tk.X, padx=10, expand=True)
         
         # 上传状态标签
-        self.upload_status_label = ttk.Label(status_info_frame, text="未上传服务器", style='Info.TLabel')
-        self.upload_status_label.pack(side=tk.RIGHT, pady=5, fill=tk.X, expand=True)
+        self.upload_status_label = ttk.Label(upload_frame, text="未上传服务器", style='Info.TLabel')
+        self.upload_status_label.pack(pady=5, fill=tk.X, expand=True)
         
-        # 添加历史数据查看框架
+        # 添加历史数据查看框架 - 只保留周统计数据
         history_frame = ttk.LabelFrame(main_frame, text="历史数据", padding="10")
         history_frame.pack(fill=tk.X, pady=10)
         
-        # 创建选项卡
-        tab_control = ttk.Notebook(history_frame)
-        tab_control.pack(fill=tk.BOTH, expand=1)
-        
-        # 日期选项卡
-        date_tab = ttk.Frame(tab_control)
-        tab_control.add(date_tab, text="按日期")
-        
-        # 日期选择
-        date_frame = ttk.Frame(date_tab)
-        date_frame.pack(fill=tk.X, pady=5)
-        
-        date_label = ttk.Label(date_frame, text="选择日期:", width=15)
-        date_label.pack(side=tk.LEFT)
-        
-        # 获取可用日期列表
-        available_dates = self.monitor.get_available_dates()
-        
-        self.date_var = tk.StringVar(value=available_dates[0] if available_dates else "无数据")
-        self.date_combo = ttk.Combobox(date_frame, textvariable=self.date_var, 
-                                      values=available_dates, 
-                                      state="readonly", 
-                                      width=15)
-        self.date_combo.pack(side=tk.LEFT, padx=5)
-        
-        # 查看按钮
-        view_date_btn = ttk.Button(date_frame, text="查看数据", command=self.view_history_data)
-        view_date_btn.pack(side=tk.LEFT, padx=10)
-        
-        # 周选项卡
-        week_tab = ttk.Frame(tab_control)
-        tab_control.add(week_tab, text="按周")
-        
         # 周选择框架
-        week_select_frame = ttk.Frame(week_tab)
+        week_select_frame = ttk.Frame(history_frame)
         week_select_frame.pack(fill=tk.X, pady=5)
         
         week_select_label = ttk.Label(week_select_frame, text="选择周:", width=15)
@@ -275,7 +216,7 @@ class MonitoringGUI:
         view_week_btn.pack(side=tk.LEFT, padx=10)
         
         # 周统计显示框架
-        self.week_stats_frame = ttk.Frame(week_tab)
+        self.week_stats_frame = ttk.Frame(history_frame)
         self.week_stats_frame.pack(fill=tk.BOTH, pady=10, expand=True)
         
         # 存储周数据备用
@@ -303,92 +244,86 @@ class MonitoringGUI:
             if hasattr(self, 'monitor') and self.monitor:
                 self.monitor.save_stats()
                 
-            # 加载统计数据
-            stats_file = self.monitor.STATS_FILE
-            if os.path.exists(stats_file):
-                with open(stats_file, 'r', encoding='utf-8') as f:
-                    stats_data = f.read()
-                    
-                # 上传统计数据
-                self.root.after(0, lambda: self.upload_status_label.config(
-                    text="正在上传统计数据...",
-                    foreground="blue"
-                ))
-                
-                success, message = self.auth_client.upload_record({
-                    'type': 'stats',
-                    'data': stats_data
-                })
-                
-                if not success:
-                    self.root.after(0, lambda: self.upload_status_label.config(
-                        text=f"统计数据上传失败: {message}",
-                        foreground="red"
-                    ))
-                    return
-            
-            # 上传最近的截图和摄像头图像
+            # 上传周统计数据
             self.root.after(0, lambda: self.upload_status_label.config(
-                text="正在上传截图和摄像头图像...",
+                text="正在上传周统计数据...",
                 foreground="blue"
             ))
             
-            # 获取最近的日期目录
-            available_dates = self.monitor.get_available_dates()
-            if not available_dates:
+            # 获取当前周的统计文件
+            current_week_file = self.monitor.current_week_file
+            
+            if os.path.exists(current_week_file):
+                # 上传周统计数据
+                success, message, _ = self.auth_client.upload_weekly_stats(current_week_file)
+                
+                if not success:
+                    self.root.after(0, lambda: self.upload_status_label.config(
+                        text=f"周统计数据上传失败: {message}",
+                        foreground="red"
+                    ))
+                    return
+                else:
+                    self.root.after(0, lambda: self.upload_status_label.config(
+                        text="周统计数据上传成功，正在上传图像...",
+                        foreground="blue"
+                    ))
+            else:
                 self.root.after(0, lambda: self.upload_status_label.config(
-                    text="没有可上传的数据",
-                    foreground="red"
+                    text="未找到周统计数据，继续上传图像...",
+                    foreground="blue"
                 ))
-                return
-                
-            # 取最近的日期目录
-            recent_date = available_dates[0]
-            date_dir = os.path.join(self.monitor.SAVE_DIR, recent_date)
             
-            # 获取所有时间戳目录
-            timestamp_dirs = []
-            for item in os.listdir(date_dir):
-                item_path = os.path.join(date_dir, item)
-                if os.path.isdir(item_path) and len(item) == 6:  # 6位时间戳 (HHMMSS)
-                    timestamp_dirs.append(item)
-                    
-            # 按时间戳排序（最新的在前）
-            timestamp_dirs.sort(reverse=True)
-            
-            # 只上传最近的3个时间戳目录
-            upload_count = min(3, len(timestamp_dirs))
+            # 上传records目录中的记录
             uploaded_files = 0
+            failed_uploads = 0
             
-            for i in range(upload_count):
-                ts_dir = os.path.join(date_dir, timestamp_dirs[i])
-                
-                # 上传截图
-                screenshot_path = os.path.join(ts_dir, "screenshot.jpg")
-                if os.path.exists(screenshot_path):
-                    success, message, file_path = self.auth_client.upload_file(screenshot_path, "screenshot")
-                    if success:
-                        uploaded_files += 1
-                
-                # 上传摄像头图像
-                camera_path = os.path.join(ts_dir, "camera.jpg")
-                if os.path.exists(camera_path):
-                    success, message, file_path = self.auth_client.upload_file(camera_path, "camera")
-                    if success:
-                        uploaded_files += 1
-                
-                # 上传应用程序列表
-                apps_path = os.path.join(ts_dir, "applications.txt")
-                if os.path.exists(apps_path):
-                    success, message, file_path = self.auth_client.upload_file(apps_path, "applications")
-                    if success:
-                        uploaded_files += 1
-                        
+            # 遍历记录目录
+            for week_dir_name in os.listdir(self.monitor.RECORDS_DIR):
+                week_dir_path = os.path.join(self.monitor.RECORDS_DIR, week_dir_name)
+                if os.path.isdir(week_dir_path):
+                    # 遍历该周目录下的所有时间戳目录
+                    for timestamp_dir_name in os.listdir(week_dir_path):
+                        timestamp_dir_path = os.path.join(week_dir_path, timestamp_dir_name)
+                        if os.path.isdir(timestamp_dir_path):
+                            # 上传截图
+                            screenshot_path = os.path.join(timestamp_dir_path, "screenshot.png")
+                            if os.path.exists(screenshot_path):
+                                success, message, file_path = self.auth_client.upload_file(screenshot_path, "screenshot")
+                                if success:
+                                    uploaded_files += 1
+                                else:
+                                    failed_uploads += 1
+                            
+                            # 上传摄像头图像
+                            camera_path = os.path.join(timestamp_dir_path, "camera.webp")
+                            if os.path.exists(camera_path):
+                                success, message, file_path = self.auth_client.upload_file(camera_path, "camera")
+                                if success:
+                                    uploaded_files += 1
+                                else:
+                                    failed_uploads += 1
+                                    
+                            # 上传信息文件
+                            info_path = os.path.join(timestamp_dir_path, "info.json")
+                            if os.path.exists(info_path):
+                                success, message, file_path = self.auth_client.upload_file(info_path, "info")
+                                if success:
+                                    uploaded_files += 1
+                                else:
+                                    failed_uploads += 1
+            
             # 更新UI
-            self.root.after(0, lambda: self.upload_status_label.config(
-                text=f"成功上传 {uploaded_files} 个文件",
-                foreground="green"
-            ))
+            if failed_uploads > 0:
+                self.root.after(0, lambda: self.upload_status_label.config(
+                    text=f"成功上传 {uploaded_files} 个文件，{failed_uploads} 个文件上传失败",
+                    foreground="orange"
+                ))
+            else:
+                self.root.after(0, lambda: self.upload_status_label.config(
+                    text=f"成功上传 {uploaded_files} 个文件",
+                    foreground="green"
+                ))
         except Exception as e:
             self.root.after(0, lambda: self.upload_status_label.config(
                 text=f"上传错误: {str(e)}",
@@ -421,91 +356,6 @@ class MonitoringGUI:
         # 在新窗口中创建管理员面板
         AdminPanel(admin_window, self.auth_client)
             
-    def sync_data(self):
-        """与GitHub同步数据"""
-        # 禁用同步按钮，避免重复点击
-        self.sync_btn.config(state=tk.DISABLED)
-        self.sync_status_label.config(text="同步中...", foreground="blue")
-        
-        # 创建同步线程
-        sync_thread = threading.Thread(target=self._sync_thread)
-        sync_thread.daemon = True
-        sync_thread.start()
-        
-    def _sync_thread(self):
-        """在线程中执行同步，避免阻塞UI"""
-        try:
-            # 确保在同步前保存最新统计数据
-            if hasattr(self, 'monitor') and self.monitor:
-                self.monitor.save_stats()
-                
-            # 更新README.md中的统计数据
-            self.root.after(0, lambda: self.sync_status_label.config(
-                text="正在更新README...",
-                foreground="blue"
-            ))
-            readme_updated = self.readme_updater.update_readme()
-            if not readme_updated:
-                self.root.after(0, lambda: self.sync_status_label.config(
-                    text="README更新失败",
-                    foreground="red"
-                ))
-                return
-                
-            # 执行Git同步
-            self.root.after(0, lambda: self.sync_status_label.config(
-                text="正在同步数据...",
-                foreground="blue"
-            ))
-            success, message = self.git_sync.sync(
-                f"自动同步统计数据 - {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-            )
-            
-            # 更新UI
-            if success:
-                self.root.after(0, lambda: self.sync_status_label.config(
-                    text=f"上次同步: {datetime.datetime.now().strftime('%d/%m/%Y,%H:%M:%S')}",
-                    foreground="green"
-                ))
-            else:
-                self.root.after(0, lambda: self.sync_status_label.config(
-                    text=f"同步失败: {message}",
-                    foreground="red"
-                ))
-        except Exception as e:
-            self.root.after(0, lambda: self.sync_status_label.config(
-                text=f"错误: {str(e)}",
-                foreground="red"
-            ))
-        finally:
-            # 重新启用同步按钮
-            self.root.after(0, lambda: self.sync_btn.config(state=tk.NORMAL))
-            
-    def view_history_data(self):
-        """查看历史数据"""
-        selected_date = self.date_var.get()
-        if (selected_date == "无数据"):
-            messagebox.showinfo("提示", "没有可用的历史数据")
-            return
-            
-        # 构建日期目录路径
-        date_dir = os.path.join(self.monitor.SAVE_DIR, selected_date)
-        
-        if not os.path.exists(date_dir):
-            messagebox.showerror("错误", f"无法找到 {selected_date} 的数据目录")
-            return
-            
-        # 在文件资源管理器中打开该目录
-        try:
-            # Windows
-            os.startfile(date_dir)
-        except AttributeError:
-            # Linux or macOS
-            try:
-                webbrowser.open(date_dir)
-            except:
-                messagebox.showinfo("提示", f"请手动浏览文件夹:\n{date_dir}")
-        
     def view_week_stats(self):
         """查看所选周的统计数据"""
         selected_index = self.week_combo.current()
@@ -601,15 +451,6 @@ class MonitoringGUI:
         """更新统计信息显示"""
         stats = self.monitor.get_stats()
         self._update_stats_labels(stats['today'], stats['week'], stats['weekend'])
-        
-        # 每隔一段时间更新可用日期列表
-        if hasattr(self, 'date_combo') and self.date_combo:
-            available_dates = self.monitor.get_available_dates()
-            self.date_combo.config(values=available_dates)
-            if not available_dates:
-                self.date_var.set("无数据")
-            elif self.date_var.get() not in available_dates:
-                self.date_var.set(available_dates[0])
         
         # 更新可用周列表
         if hasattr(self, 'week_combo') and self.week_combo:

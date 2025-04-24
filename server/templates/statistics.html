@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工作监控系统 - 工作时长统计</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
+    <style>
+        body {
+            padding-top: 4.5rem;
+            background-color: #f5f5f5;
+        }
+        .navbar-brand {
+            padding-top: .75rem;
+            padding-bottom: .75rem;
+            font-size: 1rem;
+        }
+        .navbar {
+            background-color: #343a40!important;
+        }
+        .main-content {
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: .25rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            margin-bottom: 1.5rem;
+        }
+        .stats-card {
+            margin-bottom: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: .25rem;
+            padding: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        }
+        .stats-card h5 {
+            margin-bottom: 0.5rem;
+            color: #495057;
+        }
+        .card-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #343a40;
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+        .detail-row:hover {
+            background-color: #f8f9fa;
+        }
+        .weekend-hours {
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        .weekday-hours {
+            color: #198754;
+            font-weight: 500;
+        }
+        .total-hours {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">工作监控系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">仪表板</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard/statistics">工作时长统计</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/users">用户管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/files">文件管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">欢迎，{{ username }}</span>
+                    <a class="btn btn-outline-light btn-sm" href="/logout">退出</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="main-content">
+            <!-- 在页面顶部操作按钮区域添加导出按钮 -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">工作时长统计</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <!-- 添加导出按钮，触发导出模态框 -->
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2" data-bs-toggle="modal" data-bs-target="#exportModal">
+                        <i class="bi bi-download"></i> 导出数据
+                    </button>
+                    <a href="/dashboard" class="btn btn-sm btn-outline-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                        </svg>
+                        返回仪表板
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col">
+                    <div class="card">
+                        <div class="card-body">
+                            <form method="get" action="{{ url_for('dashboard_statistics') }}" class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="user_id" class="form-label">用户筛选</label>
+                                    <select class="form-select" id="user_id" name="user_id">
+                                        <option value="">全部用户</option>
+                                        {% for user in users %}
+                                        <option value="{{ user.uid }}" {% if selected_user_id == user.uid %}selected{% endif %}>
+                                            {{ user.username }} {% if user.is_admin %}(管理员){% endif %}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="year" class="form-label">年份</label>
+                                    <select class="form-select" id="year" name="year">
+                                        {% for year_value in available_years %}
+                                        <option value="{{ year_value }}" {% if current_year == year_value %}selected{% endif %}>
+                                            {{ year_value }}年
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary w-100">应用筛选</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 周统计概览卡片 -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">总工作时长</h5>
+                            <p class="card-text text-primary" style="font-size: 2rem;">
+                                {{ total_hours_display }}
+                            </p>
+                            <p class="text-muted">所选时间范围内的总工作时长</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">工作日时长</h5>
+                            <p class="card-text text-success" style="font-size: 2rem;">
+                                {{ weekday_hours_display }}
+                            </p>
+                            <p class="text-muted">周一至周五累计工作时长</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">周末时长</h5>
+                            <p class="card-text text-info" style="font-size: 2rem;">
+                                {{ weekend_hours_display }}
+                            </p>
+                            <p class="text-muted">周六日累计工作时长</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">每周工作时长统计（小时）</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="weeklyDurationChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="card h-100">
+                        <div class="card-header bg-light">
+                            <h5 class="mb-0">工作日 vs 周末工作时长</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="weekdayVsWeekendChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">详细周统计数据</h5>
+                            {% if selected_user_id %}
+                            <span class="badge bg-primary">{{ selected_username }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-sm table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>周期</th>
+                                            {% if not selected_user_id %}
+                                            <th>用户</th>
+                                            {% endif %}
+                                            <th>工作日</th>
+                                            <th>周末</th>
+                                            <th>总工时</th>
+                                            <th>日均</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for stat in stats %}
+                                        <tr class="detail-row" data-week-id="{{ stat.week }}" onclick="showWeekDetail({{ stat.week }}, '{{ stat.user_id }}')">
+                                            <td>第{{ stat.week }}周</td>
+                                            {% if not selected_user_id %}
+                                            <td>{{ stat.username }}</td>
+                                            {% endif %}
+                                            <td class="weekday-hours">{{ stat.weekday_hours }}</td>
+                                            <td class="weekend-hours">{{ stat.weekend_hours }}</td>
+                                            <td class="total-hours">{{ stat.total_hours }}</td>
+                                            <td>{{ stat.daily_avg }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="{% if selected_user_id %}5{% else %}6{% endif %}" class="text-center">
+                                                暂无统计数据
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 周详情模态框 -->
+            <div class="modal fade" id="weekDetailModal" tabindex="-1" aria-labelledby="weekDetailModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="weekDetailModalLabel">周详情</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="weekDetailContent">
+                                <div class="text-center p-5">
+                                    <div class="spinner-border" role="status">
+                                        <span class="visually-hidden">加载中...</span>
+                                    </div>
+                                    <p class="mt-3">正在加载详细数据...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 在页面底部添加导出模态框 -->
+            <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exportModalLabel">导出工作时长数据</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="exportForm" action="/dashboard/export_stats" method="get">
+                                <div class="mb-3">
+                                    <label for="exportYear" class="form-label">选择年份</label>
+                                    <select class="form-select" id="exportYear" name="year">
+                                        {% for year in available_years %}
+                                        <option value="{{ year }}">{{ year }}年</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label for="startWeek" class="form-label">起始周</label>
+                                        <select class="form-select" id="startWeek" name="start_week">
+                                            {% for i in range(1, 53) %}
+                                            <option value="{{ i }}">第{{ i }}周</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col">
+                                        <label for="endWeek" class="form-label">结束周</label>
+                                        <select class="form-select" id="endWeek" name="end_week">
+                                            {% for i in range(1, 53) %}
+                                            <option value="{{ i }}" {% if i == 52 %}selected{% endif %}>第{{ i }}周</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="exportType" class="form-label">导出方式</label>
+                                    <select class="form-select" id="exportType" name="export_type">
+                                        <option value="all_users">所有用户数据</option>
+                                        <option value="selected_user">当前选择的用户数据</option>
+                                    </select>
+                                    <input type="hidden" id="selectedUserId" name="user_id" value="{{ selected_user_id }}">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" onclick="document.getElementById('exportForm').submit()">导出CSV</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 周统计JavaScript -->
+            <script>
+                // 每周工作时长图表
+                var ctx1 = document.getElementById('weeklyDurationChart').getContext('2d');
+                var weeklyDurationChart = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: {{ chart_labels|tojson }},
+                        datasets: [{
+                            label: '总工作时长（小时）',
+                            data: {{ chart_total_hours|tojson }},
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '小时'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '周'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // 工作日 vs 周末工作时长图表
+                var ctx2 = document.getElementById('weekdayVsWeekendChart').getContext('2d');
+                var weekdayVsWeekendChart = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: {{ chart_labels|tojson }},
+                        datasets: [
+                            {
+                                label: '工作日（小时）',
+                                data: {{ chart_weekday_hours|tojson }},
+                                backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                                borderColor: 'rgba(40, 167, 69, 1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            },
+                            {
+                                label: '周末（小时）',
+                                data: {{ chart_weekend_hours|tojson }},
+                                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                                borderColor: 'rgba(13, 110, 253, 1)',
+                                borderWidth: 2,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '小时'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: '周'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                // 显示周详情
+                function showWeekDetail(week, userId) {
+                    // 显示模态框
+                    var modal = new bootstrap.Modal(document.getElementById('weekDetailModal'));
+                    modal.show();
+                    
+                    // 更新标题
+                    document.getElementById('weekDetailModalLabel').textContent = '第' + week + '周详情';
+                    
+                    // 加载详细数据
+                    fetch('/api/week-detail?year={{ current_year }}&week=' + week + '&user_id=' + userId)
+                        .then(response => response.json())
+                        .then(data => {
+                            var content = document.getElementById('weekDetailContent');
+                            
+                            if (data.success) {
+                                var html = '<div class="card mb-4">' +
+                                    '<div class="card-header bg-light">' +
+                                    '<h5 class="mb-0">基本信息</h5>' +
+                                    '</div>' +
+                                    '<div class="card-body">' +
+                                    '<div class="row">' +
+                                    '<div class="col-md-6"><strong>用户:</strong> ' + data.detail.username + '</div>' +
+                                    '<div class="col-md-6"><strong>周期:</strong> ' + data.detail.week_start + ' 至 ' + data.detail.week_end + '</div>' +
+                                    '</div>' +
+                                    '<div class="row mt-3">' +
+                                    '<div class="col-md-4"><strong>工作日时长:</strong> <span class="text-success">' + data.detail.weekday_hours + '</span></div>' +
+                                    '<div class="col-md-4"><strong>周末时长:</strong> <span class="text-primary">' + data.detail.weekend_hours + '</span></div>' +
+                                    '<div class="col-md-4"><strong>总时长:</strong> <span class="fw-bold">' + data.detail.total_hours + '</span></div>' +
+                                    '</div>' +
+                                    '</div>' +
+                                    '</div>';
+                                    
+                                // 日详情表格
+                                html += '<div class="card">' +
+                                    '<div class="card-header bg-light">' +
+                                    '<h5 class="mb-0">每日时长详情</h5>' +
+                                    '</div>' +
+                                    '<div class="card-body">' +
+                                    '<div class="table-responsive">' +
+                                    '<table class="table table-sm table-bordered">' +
+                                    '<thead><tr>' +
+                                    '<th>日期</th><th>星期</th><th>工作时长</th><th>开始时间</th><th>结束时间</th><th>类型</th>' +
+                                    '</tr></thead><tbody>';
+                                    
+                                // 添加每日数据
+                                data.detail.days.forEach(day => {
+                                    var dayType = day.is_weekend ? '<span class="badge bg-primary">周末</span>' : '<span class="badge bg-success">工作日</span>';
+                                    html += '<tr>' +
+                                        '<td>' + day.date + '</td>' +
+                                        '<td>' + day.weekday + '</td>' +
+                                        '<td>' + day.duration + '</td>' +
+                                        '<td>' + (day.start_time || '-') + '</td>' +
+                                        '<td>' + (day.end_time || '-') + '</td>' +
+                                        '<td>' + dayType + '</td>' +
+                                        '</tr>';
+                                });
+                                    
+                                html += '</tbody></table></div></div></div>';
+                                
+                                content.innerHTML = html;
+                            } else {
+                                content.innerHTML = '<div class="alert alert-warning">无法加载详细数据: ' + data.message + '</div>';
+                            }
+                        })
+                        .catch(error => {
+                            document.getElementById('weekDetailContent').innerHTML = 
+                                '<div class="alert alert-danger">加载数据失败: ' + error + '</div>';
+                        });
+                }
+                
+                // 设置初始周范围
+                document.addEventListener('DOMContentLoaded', function() {
+                    // 根据当前年份和周数设置默认值
+                    var currentDate = new Date();
+                    var currentWeek = Math.ceil((currentDate - new Date(currentDate.getFullYear(), 0, 1)) / 86400000 / 7);
+                    
+                    document.getElementById('startWeek').value = "1"; // 默认从第1周开始
+                    document.getElementById('endWeek').value = currentWeek.toString(); // 默认到当前周结束
+                    
+                    // 确保起始周不大于结束周
+                    document.getElementById('startWeek').addEventListener('change', function() {
+                        var startWeek = parseInt(this.value);
+                        var endWeek = parseInt(document.getElementById('endWeek').value);
+                        
+                        if (startWeek > endWeek) {
+                            document.getElementById('endWeek').value = startWeek;
+                        }
+                    });
+                    
+                    document.getElementById('endWeek').addEventListener('change', function() {
+                        var endWeek = parseInt(this.value);
+                        var startWeek = parseInt(document.getElementById('startWeek').value);
+                        
+                        if (endWeek < startWeek) {
+                            document.getElementById('startWeek').value = endWeek;
+                        }
+                    });
+                    
+                    // 当"导出方式"更改时，更新用户ID值
+                    document.getElementById('exportType').addEventListener('change', function() {
+                        if (this.value === 'selected_user') {
+                            document.getElementById('selectedUserId').value = "{{ selected_user_id }}";
+                        } else {
+                            document.getElementById('selectedUserId').value = "";
+                        }
+                    });
+                });
+            </script>
+        </div>
+        
+        <!-- 页脚 -->
+        <footer class="text-center text-muted py-3">
+            <p>&copy; 2025 工作监控系统 - 服务器端</p>
+        </footer>
+    </main>
+</body>
+</html>

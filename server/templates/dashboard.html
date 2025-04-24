@@ -4,169 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理员仪表板 - 工作监控系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.bundle.min.js"></script>
     <style>
         body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            color: #333;
+            padding-top: 4.5rem;
             background-color: #f5f5f5;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        .navbar-brand {
+            padding-top: .75rem;
+            padding-bottom: .75rem;
+            font-size: 1rem;
         }
-        .header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px 0;
-            text-align: center;
-            margin-bottom: 30px;
+        .navbar {
+            background-color: #343a40!important;
         }
-        .header h1 {
-            margin: 0;
+        .main-content {
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: .25rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            margin-bottom: 1.5rem;
         }
-        .card {
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
+        .stats-card {
+            margin-bottom: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: .25rem;
+            padding: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
         }
-        .card h2 {
-            margin-top: 0;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            color: #2c3e50;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #3498db;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-right: 10px;
-            transition: background-color 0.3s;
-        }
-        .btn:hover {
-            background-color: #2980b9;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px 0;
-            border-top: 1px solid #ddd;
-            color: #888;
-        }
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-        .stat-box {
-            flex: 1;
-            text-align: center;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .stat-box h3 {
-            margin-top: 0;
-            color: #555;
-        }
-        .stat-box .number {
-            font-size: 2rem;
+        .card-value {
+            font-size: 1.5rem;
             font-weight: bold;
-            color: #2c3e50;
+            color: #343a40;
         }
-        nav {
-            background-color: #34495e;
-            margin-bottom: 20px;
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
         }
-        nav .container {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 20px;
-        }
-        nav ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-        }
-        nav ul li {
-            margin-right: 20px;
-        }
-        nav ul li a {
-            color: white;
-            text-decoration: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-        }
-        nav ul li a:hover {
-            background-color: #2c3e50;
-        }
-        .user-info {
-            color: white;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        table, th, td {
-            border: 1px solid #ddd;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-            color: #333;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .tab-container {
-            margin-top: 20px;
-        }
-        .tabs {
-            display: flex;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 15px;
-        }
-        .tab {
-            padding: 10px 15px;
-            cursor: pointer;
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-bottom: none;
-            margin-right: 5px;
-            border-radius: 5px 5px 0 0;
-        }
-        .tab.active {
-            background-color: white;
-            border-bottom: 1px solid white;
-            margin-bottom: -1px;
-            font-weight: bold;
-        }
-        .tab-content {
-            padding: 15px 0;
-        }
-        .tab-pane {
-            display: none;
-        }
-        .tab-pane.active {
-            display: block;
+        .file-item {
+            text-align: center;
         }
         .thumb {
             width: 100px;
@@ -210,227 +89,264 @@
             max-height: 70vh;
             object-fit: contain;
         }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        .pagination a {
-            color: #3498db;
-            padding: 8px 16px;
-            text-decoration: none;
-            border: 1px solid #ddd;
-            margin: 0 4px;
-        }
-        .pagination a.active {
-            background-color: #3498db;
-            color: white;
-            border: 1px solid #3498db;
-        }
-        .pagination a:hover:not(.active) {
-            background-color: #f1f1f1;
+        .img-error {
+            opacity: 0.6;
+            border: 1px dashed #ccc;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="container">
-            <h1>工作监控系统服务器</h1>
-            <p>管理员仪表板</p>
-        </div>
-    </div>
-
-    <nav>
-        <div class="container">
-            <ul>
-                <li><a href="/dashboard">仪表板</a></li>
-                <li><a href="/dashboard/users">用户管理</a></li>
-                <li><a href="/dashboard/records">工作记录</a></li>
-                <li><a href="/dashboard/files">文件管理</a></li>
-            </ul>
-            <div class="user-info">
-                <span>欢迎，{{ username }}</span>
-                <a href="/logout" style="margin-left: 15px; color: #e74c3c;">登出</a>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">工作监控系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">仪表板</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/statistics">工作时长统计</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/users">用户管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/files">文件管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">欢迎，{{ username }}</span>
+                    <a class="btn btn-outline-light btn-sm" href="/logout">退出</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container">
-        <div class="card">
-            <h2>系统概览</h2>
-            <div class="stats">
-                <div class="stat-box">
-                    <h3>注册用户</h3>
-                    <div class="number">{{ user_count }}</div>
+    <main class="container">
+        <div class="main-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">系统仪表板</h1>
+            </div>
+            
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h5>注册用户</h5>
+                        <div class="card-value">{{ user_count }}</div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <h3>工作记录</h3>
-                    <div class="number">{{ record_count }}</div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h5>工作记录</h5>
+                        <div class="card-value">{{ record_count }}</div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <h3>上传文件</h3>
-                    <div class="number">{{ file_count }}</div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h5>上传文件</h5>
+                        <div class="card-value">{{ file_count }}</div>
+                    </div>
                 </div>
-                <div class="stat-box">
-                    <h3>今日活跃</h3>
-                    <div class="number">{{ active_today }}</div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <h5>今日活跃</h5>
+                        <div class="card-value">{{ active_today }}</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card">
-            <h2>最近活动</h2>
-            <div class="tab-container">
-                <div class="tabs">
-                    <div class="tab active" data-tab="recent-users">最近用户</div>
-                    <div class="tab" data-tab="recent-records">最近记录</div>
-                    <div class="tab" data-tab="recent-files">最近文件</div>
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">最近活动</h5>
                 </div>
-                
-                <div class="tab-content">
-                    <div class="tab-pane active" id="recent-users">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>用户名</th>
-                                    <th>创建时间</th>
-                                    <th>是否管理员</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in users %}
-                                <tr>
-                                    <td>{{ user.uid }}</td>
-                                    <td>{{ user.username }}</td>
-                                    <td>{{ user.created_at }}</td>
-                                    <td>{{ "是" if user.is_admin else "否" }}</td>
-                                    <td>
-                                        <a href="/dashboard/user/{{ user.uid }}" class="btn" style="padding: 5px 10px;">查看</a>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="5">暂无用户数据</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="tab-pane" id="recent-records">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>用户</th>
-                                    <th>类型</th>
-                                    <th>时间</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for record in records %}
-                                <tr>
-                                    <td>{{ loop.index }}</td>
-                                    <td>{{ record.username }}</td>
-                                    <td>{{ record.type }}</td>
-                                    <td>{{ record.timestamp }}</td>
-                                    <td>
-                                        <a href="/dashboard/record/{{ loop.index }}" class="btn" style="padding: 5px 10px;">查看</a>
-                                    </td>
-                                </tr>
-                                {% else %}
-                                <tr>
-                                    <td colspan="5">暂无记录数据</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div class="tab-pane" id="recent-files">
-                        <div class="files-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px;">
-                            {% for file in files %}
-                            <div class="file-item" style="text-align: center;">
-                                {% if file.type == 'image' %}
-                                <img src="{{ file.url }}" alt="{{ file.name }}" class="thumb" onclick="openModal('{{ file.url }}')">
-                                {% else %}
-                                <div style="width: 100px; height: 100px; background: #eee; display: flex; align-items: center; justify-content: center;">
-                                    文件
+                <div class="card-body">
+                    <ul class="nav nav-tabs" id="activityTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#recent-users" type="button" role="tab">最近用户</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="records-tab" data-bs-toggle="tab" data-bs-target="#recent-records" type="button" role="tab">最近记录</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="files-tab" data-bs-toggle="tab" data-bs-target="#recent-files" type="button" role="tab">最近文件</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content mt-3" id="activityTabsContent">
+                        <div class="tab-pane fade show active" id="recent-users" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>用户名</th>
+                                            <th>创建时间</th>
+                                            <th>是否管理员</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in users %}
+                                        <tr>
+                                            <td>{{ user.uid }}</td>
+                                            <td>{{ user.username }}</td>
+                                            <td>{{ user.created_at }}</td>
+                                            <td>{{ "是" if user.is_admin else "否" }}</td>
+                                            <td>
+                                                <a href="/dashboard/user/{{ user.uid }}" class="btn btn-sm btn-primary">查看</a>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center">暂无用户数据</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="recent-records" role="tabpanel">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>用户</th>
+                                            <th>记录日期</th>
+                                            <th>工作时长</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for record in records %}
+                                        <tr>
+                                            <td>{{ record.id }}</td>
+                                            <td>{{ record.username }}</td>
+                                            <td>{{ record.record_date }}</td>
+                                            <td>{{ record.duration }}</td>
+                                            <td>
+                                                <a href="/dashboard/record/{{ record.id }}" class="btn btn-sm btn-primary">查看</a>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center">暂无记录数据</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="tab-pane fade" id="recent-files" role="tabpanel">
+                            <div class="recent-files mt-4">
+                                <h5>最近上传文件</h5>
+                                <div class="row">
+                                    {% for file in files %}
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card h-100">
+                                            <img src="{{ file.url }}" class="card-img-top img-thumbnail" alt="{{ file.filename }}"
+                                                 style="height: 150px; object-fit: cover;">
+                                            <div class="card-body p-2">
+                                                <h6 class="card-title text-truncate">{{ file.filename }}</h6>
+                                                <p class="card-text small text-muted mb-0">{{ file.username }} | {{ file.date }}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
                                 </div>
-                                {% endif %}
-                                <div style="margin-top: 5px; font-size: 12px;">{{ file.name }}</div>
-                                <div style="font-size: 10px; color: #888;">{{ file.user }}</div>
                             </div>
-                            {% else %}
-                            <div style="grid-column: 1 / -1; text-align: center; padding: 20px;">
-                                暂无文件数据
-                            </div>
-                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">系统状态</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>服务器运行状态:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            <span class="badge bg-success">{{ server_status }}</span>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>服务器启动时间:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            {{ server_start_time }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>服务器版本:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            {{ server_version }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>API请求总数:</strong>
+                        </div>
+                        <div class="col-md-9">
+                            {{ api_count }}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        
-        <div class="card">
-            <h2>系统状态</h2>
-            <p>服务器运行状态: <strong>{{ server_status }}</strong></p>
-            <p>服务器启动时间: <strong>{{ server_start_time }}</strong></p>
-            <p>服务器版本: <strong>{{ server_version }}</strong></p>
-            <p>API请求总数: <strong>{{ api_count }}</strong></p>
-        </div>
-    </div>
+
+        <!-- 页脚 -->
+        <footer class="text-center text-muted py-3">
+            <p>&copy; 2025 工作监控系统 - 服务器端</p>
+        </footer>
+    </main>
 
     <!-- 图片查看模态窗口 -->
-    <div id="imageModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <img id="modalImage" class="modal-image" src="" alt="">
-        </div>
-    </div>
-
-    <div class="footer">
-        <div class="container">
-            <p>&copy; 2025 工作监控系统 - 服务器端</p>
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">图片查看</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" class="img-fluid" src="" alt="">
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // 切换标签页
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // 移除所有active类
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-                
-                // 添加active类到当前标签
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab).classList.add('active');
-            });
-        });
-        
         // 图片模态窗口
         function openModal(imgUrl) {
-            const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImage');
-            modal.style.display = 'block';
             modalImg.src = imgUrl;
+            const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+            modal.show();
         }
-        
-        function closeModal() {
-            document.getElementById('imageModal').style.display = 'none';
-        }
-        
-        // 点击模态窗口外部关闭
-        window.onclick = function(event) {
-            const modal = document.getElementById('imageModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
-        }
+
+        // 添加图片错误处理
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.card-img-top').forEach(img => {
+                img.onerror = function() {
+                    this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22200%22%20height%3D%22150%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20200%20150%22%3E%3Cpath%20fill%3D%22%23f0f0f0%22%20d%3D%22M0%200h200v150H0z%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2210%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%20fill%3D%22%23999%22%3E图像加载失败%3C%2Ftext%3E%3C%2Fsvg%3E';
+                    this.classList.add('img-error');
+                };
+            });
+        });
     </script>
 </body>
 </html>

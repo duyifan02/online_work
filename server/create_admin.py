@@ -1,9 +1,7 @@
-import json
-import os
 import sys
-from werkzeug.security import generate_password_hash
-import uuid
-import datetime
+import os
+from flask import Flask
+from models import db, User
 
 def create_admin_user(username, password):
     """创建管理员用户
@@ -12,45 +10,38 @@ def create_admin_user(username, password):
         username: 管理员用户名
         password: 管理员密码
     """
-    # 获取数据库文件路径
-    db_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.json")
+    # 创建 Flask 应用
+    app = Flask(__name__)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     
-    # 如果数据库文件不存在，创建一个空的数据库
-    if not os.path.exists(db_file):
-        with open(db_file, 'w', encoding='utf-8') as f:
-            json.dump({
-                "users": [],
-                "work_records": []
-            }, f, ensure_ascii=False, indent=2)
+    # 初始化数据库
+    db.init_app(app)
     
-    # 加载数据库
-    with open(db_file, 'r', encoding='utf-8') as f:
-        db = json.load(f)
-    
-    # 检查用户名是否已存在
-    if any(user['username'] == username for user in db['users']):
-        print(f"错误: 用户名 '{username}' 已存在")
-        return False
-    
-    # 创建管理员用户
-    user_uid = str(uuid.uuid4())
-    admin_user = {
-        'uid': user_uid,
-        'username': username,
-        'password_hash': generate_password_hash(password),
-        'is_admin': True,  # 设置为管理员
-        'created_at': datetime.datetime.now().isoformat()
-    }
-    
-    # 添加用户到数据库
-    db['users'].append(admin_user)
-    
-    # 保存数据库
-    with open(db_file, 'w', encoding='utf-8') as f:
-        json.dump(db, f, ensure_ascii=False, indent=2)
-    
-    print(f"成功创建管理员用户 '{username}'")
-    return True
+    with app.app_context():
+        # 确保数据库表存在
+        db.create_all()
+        
+        # 检查用户名是否已存在
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            print(f"错误: 用户名 '{username}' 已存在")
+            return False
+        
+        # 创建管理员用户
+        admin_user = User(username=username, password=password, is_admin=True)
+        
+        # 添加用户到数据库
+        try:
+            db.session.add(admin_user)
+            db.session.commit()
+            print(f"成功创建管理员用户 '{username}'")
+            print(f"用户 ID: {admin_user.uid}")
+            return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"错误: 创建管理员用户失败 - {str(e)}")
+            return False
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:

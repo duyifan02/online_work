@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文件管理 - 工作监控系统</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.bundle.min.js"></script>
+    <style>
+        body {
+            padding-top: 4.5rem;
+            background-color: #f5f5f5;
+        }
+        .navbar-brand {
+            padding-top: .75rem;
+            padding-bottom: .75rem;
+            font-size: 1rem;
+        }
+        .navbar {
+            background-color: #343a40!important;
+        }
+        .main-content {
+            padding: 1.5rem;
+            background-color: #ffffff;
+            border-radius: .25rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            margin-bottom: 1.5rem;
+        }
+        .file-type-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .screenshot-badge {
+            background-color: #28a745;
+            color: white;
+        }
+        .camera-badge {
+            background-color: #007bff;
+            color: white;
+        }
+        .applications-badge {
+            background-color: #6c757d;
+            color: white;
+        }
+        .other-badge {
+            background-color: #dc3545;
+            color: white;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+        }
+        .thumbnail {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .thumbnail:hover {
+            transform: scale(1.1);
+        }
+        .file-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .file-stats-card {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .screenshot-stat {
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+        .camera-stat {
+            background-color: rgba(0, 123, 255, 0.1);
+            border: 1px solid rgba(0, 123, 255, 0.2);
+        }
+        .applications-stat {
+            background-color: rgba(108, 117, 125, 0.1);
+            border: 1px solid rgba(108, 117, 125, 0.2);
+        }
+        .total-stat {
+            background-color: rgba(33, 37, 41, 0.1);
+            border: 1px solid rgba(33, 37, 41, 0.2);
+        }
+        .json-key {
+            color: #0066cc;
+        }
+        .json-value {
+            color: #008000;
+        }
+        .json-string {
+            color: #a31515;
+        }
+        .sort-icon {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+        .sort-active {
+            color: #0d6efd;
+        }
+        .sort-inactive {
+            color: #6c757d;
+        }
+        .gallery-view {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-gap: 15px;
+            margin-top: 20px;
+        }
+        .gallery-item {
+            position: relative;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
+            transition: transform 0.3s;
+            height: 200px;
+        }
+        .gallery-item:hover {
+            transform: translateY(-5px);
+        }
+        .gallery-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            display: block;
+        }
+        .gallery-info {
+            padding: 8px;
+            background-color: #f8f9fa;
+            font-size: 0.8rem;
+            height: 50px;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">工作监控系统</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarCollapse">
+                <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">仪表板</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/statistics">工作时长统计</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard/users">用户管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard/files">文件管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex">
+                    <span class="navbar-text me-3">欢迎，{{ username }}</span>
+                    <a class="btn btn-outline-light btn-sm" href="/logout">退出</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="main-content">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">文件管理</h1>
+                <div class="btn-toolbar mb-2 mb-md-0">
+                    <div class="btn-group me-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="toggleViewBtn" onclick="toggleView()">
+                            <i class="bi bi-grid"></i> 切换视图
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="window.location.reload()">
+                            <i class="bi bi-arrow-clockwise"></i> 刷新
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 文件统计信息 -->
+            <div class="file-stats mb-4">
+                <div class="file-stats-card total-stat">
+                    <div class="stat-value">{{ type_counts.all }}</div>
+                    <div class="stat-label">总文件数</div>
+                </div>
+                <div class="file-stats-card screenshot-stat">
+                    <div class="stat-value">{{ type_counts.screenshot }}</div>
+                    <div class="stat-label">屏幕截图</div>
+                </div>
+                <div class="file-stats-card camera-stat">
+                    <div class="stat-value">{{ type_counts.camera }}</div>
+                    <div class="stat-label">摄像头图像</div>
+                </div>
+                <div class="file-stats-card applications-stat">
+                    <div class="stat-value">{{ type_counts.applications }}</div>
+                    <div class="stat-label">应用程序记录</div>
+                </div>
+            </div>
+
+            <!-- 文件搜索和筛选 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">文件筛选</h5>
+                    <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="true" aria-controls="filterCollapse">
+                        <i class="bi bi-filter"></i> 显示/隐藏筛选
+                    </button>
+                </div>
+                <div class="collapse show" id="filterCollapse">
+                    <div class="card-body">
+                        <form method="get" action="/dashboard/files">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-3">
+                                    <label for="user" class="form-label">用户</label>
+                                    <select class="form-select" name="user_id" id="user">
+                                        <option value="all" {% if selected_user_id == 'all' or not selected_user_id %}selected{% endif %}>所有用户</option>
+                                        {% for user in all_users %}
+                                        <option value="{{ user.uid }}" {% if selected_user_id == user.uid %}selected{% endif %}>{{ user.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="fileType" class="form-label">文件类型</label>
+                                    <select class="form-select" name="file_type" id="fileType">
+                                        <option value="all" {% if file_type == 'all' or not file_type %}selected{% endif %}>所有类型</option>
+                                        <option value="screenshot" {% if file_type == 'screenshot' %}selected{% endif %}>截图 ({{ type_counts.screenshot }})</option>
+                                        <option value="camera" {% if file_type == 'camera' %}selected{% endif %}>摄像头 ({{ type_counts.camera }})</option>
+                                        <option value="applications" {% if file_type == 'applications' %}selected{% endif %}>应用程序 ({{ type_counts.applications }})</option>
+                                        <option value="other" {% if file_type == 'other' %}selected{% endif %}>其他 ({{ type_counts.other }})</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="startDate" class="form-label">开始日期</label>
+                                    <input type="date" class="form-control" name="start_date" id="startDate" value="{{ start_date if start_date else '' }}">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="endDate" class="form-label">结束日期</label>
+                                    <input type="date" class="form-control" name="end_date" id="endDate" value="{{ end_date if end_date else '' }}">
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary w-100">筛选</button>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label for="filename" class="form-label">文件名搜索</label>
+                                    <input type="text" class="form-control" name="filename" id="filename" value="{{ filename if filename else '' }}" placeholder="输入文件名关键字...">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="sortBy" class="form-label">排序方式</label>
+                                    <select class="form-select" name="sort_by" id="sortBy">
+                                        <option value="date_desc" {% if sort_by == 'date_desc' or not sort_by %}selected{% endif %}>日期从新到旧</option>
+                                        <option value="date_asc" {% if sort_by == 'date_asc' %}selected{% endif %}>日期从旧到新</option>
+                                        <option value="name_asc" {% if sort_by == 'name_asc' %}selected{% endif %}>文件名 A-Z</option>
+                                        <option value="name_desc" {% if sort_by == 'name_desc' %}selected{% endif %}>文件名 Z-A</option>
+                                        <option value="type" {% if sort_by == 'type' %}selected{% endif %}>按文件类型</option>
+                                        <option value="user" {% if sort_by == 'user' %}selected{% endif %}>按用户名</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2">
+                                    <label for="perPage" class="form-label">每页显示</label>
+                                    <select class="form-select" name="per_page" id="perPage">
+                                        <option value="24" {% if per_page == 24 %}selected{% endif %}>24 项</option>
+                                        <option value="48" {% if per_page == 48 %}selected{% endif %}>48 项</option>
+                                        <option value="96" {% if per_page == 96 %}selected{% endif %}>96 项</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-1">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button type="button" class="btn btn-outline-secondary w-100" onclick="resetFilters()">重置</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 批量操作工具栏 -->
+            <div class="d-flex justify-content-between mb-3">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="selectAllFiles()">全选</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="deselectAllFiles()">取消全选</button>
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="batchDownload()">批量下载</button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmBatchDelete()">批量删除</button>
+                </div>
+                <div>
+                    <span class="text-muted">已选择 <span id="selectedCount">0</span> 个文件</span>
+                </div>
+            </div>
+
+            <!-- 表格视图 -->
+            <div id="tableView" class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th width="40px">
+                                <input type="checkbox" class="form-check-input" id="selectAll" onclick="toggleSelectAll()">
+                            </th>
+                            <th width="80px">预览</th>
+                            <th>
+                                文件名
+                                <span class="sort-icon" onclick="changeSort('name_asc')">↑</span>
+                                <span class="sort-icon" onclick="changeSort('name_desc')">↓</span>
+                            </th>
+                            <th>
+                                用户
+                                <span class="sort-icon" onclick="changeSort('user')">↕</span>
+                            </th>
+                            <th>
+                                类型
+                                <span class="sort-icon" onclick="changeSort('type')">↕</span>
+                            </th>
+                            <th>
+                                上传日期
+                                <span class="sort-icon" onclick="changeSort('date_asc')">↑</span>
+                                <span class="sort-icon" onclick="changeSort('date_desc')">↓</span>
+                            </th>
+                            <th>上传时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for file in files %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" class="form-check-input file-checkbox" data-id="{{ file.id }}" data-path="{{ file.file_path }}">
+                            </td>
+                            <td>
+                                {% if file.file_type in ['screenshot', 'camera'] %}
+                                <div class="thumbnail-container">
+                                    <img src="/uploads/{{ file.file_path }}" class="thumbnail" 
+                                         onclick="viewImage('{{ file.file_path }}', '{{ file.filename }}')" 
+                                         alt="{{ file.filename }}" loading="lazy">
+                                </div>
+                                {% else %}
+                                <span class="text-muted">无预览</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ file.filename }}</td>
+                            <td>{{ file.username }}</td>
+                            <td>
+                                {% if file.file_type == 'screenshot' %}
+                                <span class="badge bg-success">截图</span>
+                                {% elif file.file_type == 'camera' %}
+                                <span class="badge bg-primary">摄像头</span>
+                                {% elif file.file_type == 'applications' %}
+                                <span class="badge bg-secondary">应用程序</span>
+                                {% else %}
+                                <span class="badge bg-danger">其他</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ file.file_date }}</td>
+                            <td>{{ file.file_time }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="downloadFile('{{ file.file_path }}', '{{ file.filename }}')">下载</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="viewFile('{{ file.file_path }}', '{{ file.file_type }}', '{{ file.filename }}')">查看</button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteFile('{{ file.id }}', '{{ file.filename }}')">删除</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center">暂无文件数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 网格视图 -->
+            <div id="galleryView" class="gallery-view" style="display:none">
+                {% for file in files %}
+                {% if file.file_type in ['screenshot', 'camera'] %}
+                <div class="gallery-item">
+                    <div class="form-check position-absolute m-2">
+                        <input type="checkbox" class="form-check-input file-checkbox" data-id="{{ file.id }}" data-path="{{ file.file_path }}">
+                    </div>
+                    <div class="thumbnail-container">
+                        <img src="/uploads/{{ file.file_path }}" class="gallery-img" 
+                             onclick="viewImage('{{ file.file_path }}', '{{ file.filename }}')"
+                             loading="lazy">
+                    </div>
+                    <div class="gallery-info">
+                        <small class="d-block text-truncate">{{ file.filename }}</small>
+                        <small class="text-muted">{{ file.username }} | {{ file.file_date }}</small>
+                    </div>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% if files|selectattr('file_type', 'in', ['screenshot', 'camera'])|list|length == 0 %}
+                <div class="col-12 text-center p-5">
+                    <p class="text-muted">没有可显示的图片文件</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 分页 -->
+            {% if pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('dashboard_files', page=page-1, user_id=user_id, file_type=file_type, start_date=start_date, end_date=end_date, sort_by=sort_by, per_page=per_page, filename=filename) }}" tabindex="-1">上一页</a>
+                    </li>
+                    
+                    {% if page > 3 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('dashboard_files', page=1, user_id=user_id, file_type=file_type, start_date=start_date, end_date=end_date, sort_by=sort_by, per_page=per_page, filename=filename) }}">1</a>
+                    </li>
+                    {% if page > 4 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    {% endif %}
+                    
+                    {% for i in range(max(1, page-2), min(pages+1, page+3)) %}
+                    <li class="page-item {% if i == page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('dashboard_files', page=i, user_id=user_id, file_type=file_type, start_date=start_date, end_date=end_date, sort_by=sort_by, per_page=per_page, filename=filename) }}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+                    
+                    {% if page < pages - 2 %}
+                    {% if page < pages - 3 %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('dashboard_files', page=pages, user_id=user_id, file_type=file_type, start_date=start_date, end_date=end_date, sort_by=sort_by, per_page=per_page, filename=filename) }}">{{ pages }}</a>
+                    </li>
+                    {% endif %}
+                    
+                    <li class="page-item {% if page == pages %}disabled{% endif %}">
+                        <a class="page-link" href="{{ url_for('dashboard_files', page=page+1, user_id=user_id, file_type=file_type, start_date=start_date, end_date=end_date, sort_by=sort_by, per_page=per_page, filename=filename) }}">下一页</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+
+        <!-- 页脚 -->
+        <footer class="text-center text-muted py-3">
+            <p>&copy; 2025 工作监控系统 - 服务器端</p>
+        </footer>
+    </main>
+
+    <!-- 图片预览模态框 -->
+    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imagePreviewTitle">图片预览</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <div class="preview-container">
+                        <img id="previewImage" src="" alt="图片预览" class="preview-image">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    <a id="downloadImageLink" href="" class="btn btn-primary" download>下载</a>
+                    <button type="button" class="btn btn-info" onclick="openImageInNewTab()">在新标签打开</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文本预览模态框 -->
+    <div class="modal fade" id="textPreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="textPreviewTitle">文件内容</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="jsonPreview" class="p-3 bg-light" style="max-height: 400px; overflow-y: auto; display:none;"></div>
+                    <pre id="textContent" class="p-3" style="max-height: 400px; overflow-y: auto;"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    <a id="downloadTextLink" href="" class="btn btn-primary" download>下载</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除文件确认模态框 -->
+    <div class="modal fade" id="deleteFileModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除文件 <strong id="deleteFileName"></strong> 吗？此操作不可逆。</p>
+                    <input type="hidden" id="deleteFileId">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" onclick="confirmDeleteFile()">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量删除确认模态框 -->
+    <div class="modal fade" id="batchDeleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认批量删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>确定要删除已选择的 <strong id="batchDeleteCount"></strong> 个文件吗？此操作不可逆。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" onclick="executeBatchDelete()">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 添加图片错误处理函数
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为所有图像添加错误处理
+            document.querySelectorAll('img.thumbnail, img.gallery-img, #previewImage').forEach(img => {
+                img.onerror = function() {
+                    this.src = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22100%22%20height%3D%22100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Cpath%20fill%3D%22%23f0f0f0%22%20d%3D%22M0%200h100v100H0z%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22Arial%2C%20sans-serif%22%20font-size%3D%2210%22%20text-anchor%3D%22middle%22%20dominant-baseline%3D%22middle%22%20fill%3D%22%23999%22%3E加载失败%3C%2Ftext%3E%3C%2Fsvg%3E';
+                    this.style.opacity = '0.7';
+                    this.style.border = '1px dashed #ccc';
+                    this.title = '图像加载失败';
+                };
+            });
+        });
+
+        // 视图切换
+        function toggleView() {
+            const tableView = document.getElementById('tableView');
+            const galleryView = document.getElementById('galleryView');
+            const toggleBtn = document.getElementById('toggleViewBtn');
+            
+            if (tableView.style.display !== 'none') {
+                tableView.style.display = 'none';
+                galleryView.style.display = 'grid';
+                toggleBtn.innerHTML = '<i class="bi bi-table"></i> 表格视图';
+                localStorage.setItem('fileViewPreference', 'gallery');
+            } else {
+                tableView.style.display = 'block';
+                galleryView.style.display = 'none';
+                toggleBtn.innerHTML = '<i class="bi bi-grid"></i> 网格视图';
+                localStorage.setItem('fileViewPreference', 'table');
+            }
+        }
+        
+        // 加载保存的视图偏好
+        document.addEventListener('DOMContentLoaded', function() {
+            const viewPreference = localStorage.getItem('fileViewPreference');
+            if (viewPreference === 'gallery') {
+                toggleView();
+            }
+            
+            // 显示当前排序方式的图标
+            updateSortIcons();
+            
+            // 检查是否有日期范围快捷方式
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('date_range')) {
+                setDateRange(urlParams.get('date_range'));
+            }
+        });
+        
+        // 更新排序图标
+        function updateSortIcons() {
+            const sortBy = document.getElementById('sortBy').value;
+            const sortIcons = document.querySelectorAll('.sort-icon');
+            
+            sortIcons.forEach(icon => {
+                icon.classList.remove('sort-active');
+                icon.classList.add('sort-inactive');
+            });
+            
+            // 找到当前排序方式的图标并高亮
+            if (sortBy === 'name_asc') {
+                document.querySelector('.sort-icon[onclick="changeSort(\'name_asc\')"]').classList.add('sort-active');
+            } else if (sortBy === 'name_desc') {
+                document.querySelector('.sort-icon[onclick="changeSort(\'name_desc\')"]').classList.add('sort-active');
+            } else if (sortBy === 'date_asc') {
+                document.querySelector('.sort-icon[onclick="changeSort(\'date_asc\')"]').classList.add('sort-active');
+            } else if (sortBy === 'date_desc') {
+                document.querySelector('.sort-icon[onclick="changeSort(\'date_desc\')"]').classList.add('sort-active');
+            }
+        }
+        
+        // 改变排序方式
+        function changeSort(sortMethod) {
+            document.getElementById('sortBy').value = sortMethod;
+            document.querySelector('form').submit();
+        }
+
+        // 改进文件查看函数 - 添加更严格的空路径检测
+        function viewFile(filePath, fileType, fileName) {
+            // 检查文件路径是否为空
+            if (!filePath || filePath.trim() === '') {
+                console.error("空的文件路径", {path: filePath, type: fileType, name: fileName});  // 添加详细日志
+                alert("无法查看：文件路径为空");
+                return;
+            }
+            
+            console.log("查看文件", {path: filePath, type: fileType, name: fileName});  // 添加调试日志
+            
+            if (fileType === 'screenshot' || fileType === 'camera') {
+                viewImage(filePath, fileName);
+            } else {
+                // 对于文本文件，显示内容
+                const textContent = document.getElementById('textContent');
+                const jsonPreview = document.getElementById('jsonPreview');
+                const titleEl = document.getElementById('textPreviewTitle');
+                const dlLink = document.getElementById('downloadTextLink');
+                
+                // 设置标题和下载链接
+                titleEl.textContent = fileName || '文件内容';
+                
+                // 确保路径始终使用/uploads/前缀
+                const fileSrc = '/uploads/' + filePath;
+                console.log("Loading file content from:", fileSrc); // 添加调试日志
+                
+                dlLink.href = fileSrc;
+                dlLink.setAttribute('download', fileName || 'file');
+                
+                // 显示加载指示器
+                textContent.innerHTML = '<div class="text-center p-5"><div class="spinner-border text-primary"></div><p class="mt-3">加载内容中...</p></div>';
+                jsonPreview.style.display = 'none';
+                textContent.style.display = 'block';
+                
+                // 发起请求获取文件内容
+                fetch(fileSrc)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('无法获取文件内容');
+                        }
+                        return response.text();
+                    })
+                    .then(text => {
+                        // JSON文件特殊处理
+                        if (fileType === 'applications' || (fileName && fileName.endsWith('.json'))) {
+                            try {
+                                const jsonData = JSON.parse(text);
+                                jsonPreview.innerHTML = formatJSON(jsonData);
+                                jsonPreview.style.display = 'block';
+                                textContent.style.display = 'none';
+                            } catch (e) {
+                                textContent.textContent = text;
+                                jsonPreview.style.display = 'none';
+                                textContent.style.display = 'block';
+                            }
+                        } else {
+                            textContent.textContent = text;
+                            jsonPreview.style.display = 'none';
+                            textContent.style.display = 'block';
+                        }
+                        
+                        // 显示模态框
+                        const textModal = new bootstrap.Modal(document.getElementById('textPreviewModal'));
+                        textModal.show();
+                    })
+                    .catch(error => {
+                        textContent.innerHTML = `<div class="alert alert-danger">加载失败: ${error.message}</div>`;
+                        textContent.style.display = 'block';
+                        jsonPreview.style.display = 'none';
+                        
+                        // 显示模态框
+                        const textModal = new bootstrap.Modal(document.getElementById('textPreviewModal'));
+                        textModal.show();
+                    });
+            }
+        }
+
+        // 修正图片预览函数
+        function viewImage(filePath, fileName) {
+            // 检查文件路径是否为空
+            if (!filePath || filePath.trim() === '') {
+                console.error("空的文件路径 - viewImage", {path: filePath, name: fileName});  // 添加详细日志
+                alert("无法预览：文件路径为空");
+                return;
+            }
+            
+            const imgPreview = document.getElementById('previewImage');
+            const imgTitle = document.getElementById('imagePreviewTitle');
+            const dlLink = document.getElementById('downloadImageLink');
+            
+            imgTitle.textContent = fileName || '图片预览';
+            
+            // 确保路径始终使用/uploads/前缀
+            const fullPath = '/uploads/' + filePath;
+            console.log("Loading image from:", fullPath);
+            
+            imgPreview.src = fullPath;
+            dlLink.href = fullPath;
+            dlLink.setAttribute('download', fileName || 'image');
+            
+            // 添加加载指示器
+            imgPreview.style.opacity = '0.3';
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+            
+            imgPreview.insertAdjacentHTML('afterend', '<div id="loading-indicator" class="text-center my-3"><div class="spinner-border text-primary"></div><p class="mt-2">加载图像中...</p></div>');
+            
+            // 图像加载完成时移除加载指示器
+            imgPreview.onload = function() {
+                imgPreview.style.opacity = '1';
+                const indicator = document.getElementById('loading-indicator');
+                if (indicator) indicator.remove();
+                console.log("Image loaded successfully");
+            };
+            
+            imgPreview.onerror = function() {
+                console.error("Failed to load image:", fullPath);
+                const indicator = document.getElementById('loading-indicator');
+                if (indicator) {
+                    indicator.innerHTML = '<div class="alert alert-danger">图像加载失败</div>';
+                }
+            };
+            
+            // 显示模态框
+            const imageModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+            imageModal.show();
+        }
+
+        // 修正下载函数
+        function downloadFile(filePath, fileName) {
+            // 检查文件路径是否为空 
+            if (!filePath || filePath.trim() === '') {
+                console.error("空的文件路径 - downloadFile", {path: filePath, name: fileName});  // 添加详细日志
+                alert("无法下载：文件路径为空");
+                return;
+            }
+            
+            const a = document.createElement('a');
+            // 确保路径始终使用/uploads/前缀
+            a.href = '/uploads/' + filePath;
+            a.download = fileName || filePath.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
+        // 文件选择相关功能
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll').checked;
+            const checkboxes = document.querySelectorAll('.file-checkbox');
+            
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectAll;
+            });
+            
+            updateSelectedCount();
+        }
+        
+        function selectAllFiles() {
+            const checkboxes = document.querySelectorAll('.file-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = true;
+            });
+            document.getElementById('selectAll').checked = true;
+            updateSelectedCount();
+        }
+        
+        function deselectAllFiles() {
+            const checkboxes = document.querySelectorAll('.file-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            document.getElementById('selectAll').checked = false;
+            updateSelectedCount();
+        }
+        
+        function updateSelectedCount() {
+            const selectedCheckboxes = document.querySelectorAll('.file-checkbox:checked');
+            document.getElementById('selectedCount').textContent = selectedCheckboxes.length;
+        }
+        
+        // 添加事件监听器，检测复选框变化
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('file-checkbox')) {
+                updateSelectedCount();
+            }
+        });
+        
+        // 批量下载
+        function batchDownload() {
+            const selectedCheckboxes = document.querySelectorAll('.file-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                alert('请选择要下载的文件');
+                return;
+            }
+            
+            if (selectedCheckboxes.length > 10) {
+                if (!confirm('您选择了' + selectedCheckboxes.length + '个文件，下载可能需要一些时间。是否继续？')) {
+                    return;
+                }
+            }
+            
+            // 逐个下载文件
+            selectedCheckboxes.forEach(checkbox => {
+                const filePath = checkbox.dataset.path;
+                const fileName = filePath.split('/').pop();
+                setTimeout(() => downloadFile(filePath, fileName), 100);
+            });
+        }
+        
+        // 确认批量删除对话框
+        function confirmBatchDelete() {
+            const selectedCheckboxes = document.querySelectorAll('.file-checkbox:checked');
+            
+            if (selectedCheckboxes.length === 0) {
+                alert('请选择要删除的文件');
+                return;
+            }
+            
+            document.getElementById('batchDeleteCount').textContent = selectedCheckboxes.length;
+            
+            const batchDeleteModal = new bootstrap.Modal(document.getElementById('batchDeleteModal'));
+            batchDeleteModal.show();
+        }
+        
+        // 执行批量删除
+        function executeBatchDelete() {
+            const selectedCheckboxes = document.querySelectorAll('.file-checkbox:checked');
+            const totalFiles = selectedCheckboxes.length;
+            let deletedFiles = 0;
+            let failedFiles = 0;
+            
+            // 关闭批量删除对话框
+            const batchDeleteModal = bootstrap.Modal.getInstance(document.getElementById('batchDeleteModal'));
+            batchDeleteModal.hide();
+            
+            // 显示进度消息
+            const progressMessage = document.createElement('div');
+            progressMessage.className = 'alert alert-info fixed-top m-3';
+            progressMessage.innerHTML = '正在删除文件...<div class="progress mt-2"><div class="progress-bar" role="progressbar" style="width: 0%"></div></div>';
+            document.body.appendChild(progressMessage);
+            
+            const progressBar = progressMessage.querySelector('.progress-bar');
+            
+            // 逐个删除文件
+            let processedFiles = 0;
+            
+            function deleteNextFile(index) {
+                if (index >= selectedCheckboxes.length) {
+                    // 全部处理完成
+                    setTimeout(() => {
+                        document.body.removeChild(progressMessage);
+                        alert(`操作完成：成功删除 ${deletedFiles} 个文件，失败 ${failedFiles} 个文件`);
+                        if (deletedFiles > 0) {
+                            window.location.reload();
+                        }
+                    }, 500);
+                    return;
+                }
+                
+                const fileId = selectedCheckboxes[index].dataset.id;
+                
+                fetch(`/api/admin/file/${fileId}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    processedFiles++;
+                    const progress = Math.floor((processedFiles / totalFiles) * 100);
+                    progressBar.style.width = progress + '%';
+                    progressBar.textContent = progress + '%';
+                    
+                    if (response.ok) {
+                        deletedFiles++;
+                        return null;
+                    } else {
+                        failedFiles++;
+                        return response.json();
+                    }
+                })
+                .catch(error => {
+                    failedFiles++;
+                })
+                .finally(() => {
+                    // 处理下一个文件
+                    setTimeout(() => deleteNextFile(index + 1), 100);
+                });
+            }
+            
+            // 开始删除第一个文件
+            deleteNextFile(0);
+        }
+        
+        // 重置筛选条件
+        function resetFilters() {
+            document.getElementById('user').value = 'all';
+            document.getElementById('fileType').value = 'all';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+            document.getElementById('filename').value = '';
+            document.getElementById('sortBy').value = 'date_desc';
+            document.getElementById('perPage').value = '24';
+            
+            document.querySelector('form').submit();  // 提交表单
+        }
+        
+        // 设置日期范围
+        function setDateRange(range) {
+            const today = new Date();
+            let startDate = new Date();
+            
+            switch(range) {
+                case 'today':
+                    // 今天
+                    break;
+                case 'yesterday':
+                    startDate.setDate(today.getDate() - 1);
+                    break;
+                case 'last7days':
+                    startDate.setDate(today.getDate() - 7);
+                    break;
+                case 'last30days':
+                    startDate.setDate(today.getDate() - 30);
+                    break;
+                case 'thisMonth':
+                    startDate.setDate(1);
+                    break;
+                case 'lastMonth':
+                    startDate.setMonth(today.getMonth() - 1);
+                    startDate.setDate(1);
+                    const lastDayOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+                    today.setMonth(today.getMonth() - 1);
+                    today.setDate(lastDayOfLastMonth);
+                    break;
+            }
+            
+            document.getElementById('startDate').value = formatDate(startDate);
+            document.getElementById('endDate').value = formatDate(today);
+        }
+        
+        // 格式化日期为YYYY-MM-DD
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // 在新标签页打开图片的函数
+        function openImageInNewTab() {
+            const img = document.getElementById('previewImage');
+            if (img && img.src) {
+                window.open(img.src, '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

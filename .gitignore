@@ -1,4 +1,7 @@
-# /monitoring_data
-/__pycache__
 *.jpg
-!screenshot.jpg
+*.pyc
+*.db
+*.png
+*.webp
+*.json
+*.db

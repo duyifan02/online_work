@@ -4,140 +4,221 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>工作监控系统 - 服务器</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.0.2/js/bootstrap.bundle.min.js"></script>
     <style>
         body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            color: #333;
             background-color: #f5f5f5;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background-color: #2c3e50;
+        .hero-section {
+            background-color: #343a40;
             color: white;
-            padding: 20px 0;
+            padding: 5rem 0;
+            margin-bottom: 2rem;
+        }
+        .stats-card {
+            margin-bottom: 1.5rem;
+            background-color: #f8f9fa;
+            border-radius: .25rem;
+            padding: 1.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
             text-align: center;
-            margin-bottom: 30px;
         }
-        .header h1 {
-            margin: 0;
+        .stats-card h5 {
+            margin-bottom: 0.5rem;
+            color: #495057;
         }
-        .card {
-            background-color: white;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .card h2 {
-            margin-top: 0;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            color: #2c3e50;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #3498db;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            text-decoration: none;
-            margin-right: 10px;
-            transition: background-color 0.3s;
-        }
-        .btn:hover {
-            background-color: #2980b9;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding: 20px 0;
-            border-top: 1px solid #ddd;
-            color: #888;
-        }
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-        .stat-box {
-            flex: 1;
-            text-align: center;
-            background-color: #f9f9f9;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 5px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-        .stat-box h3 {
-            margin-top: 0;
-            color: #555;
-        }
-        .stat-box .number {
-            font-size: 2rem;
+        .card-value {
+            font-size: 2.5rem;
             font-weight: bold;
-            color: #2c3e50;
+            color: #343a40;
+        }
+        .feature-card {
+            height: 100%;
         }
     </style>
 </head>
 <body>
-    <div class="header">
+    <!-- 顶部英雄区域 -->
+    <div class="hero-section">
         <div class="container">
-            <h1>工作监控系统服务器</h1>
-            <p>统一管理用户工作监控数据</p>
+            <div class="row">
+                <div class="col-md-8 mx-auto text-center">
+                    <h1 class="display-4">工作监控系统服务器</h1>
+                    <p class="lead">统一管理用户工作监控数据，助力企业提升工作效率</p>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="container">
-        <div class="card">
-            <h2>系统概览</h2>
-            <div class="stats">
-                <div class="stat-box">
-                    <h3>注册用户</h3>
-                    <div class="number">{{ user_count }}</div>
+    <div class="container mb-5">
+        <!-- 系统概览 -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4">系统概览</h2>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h5>注册用户</h5>
+                    <div class="card-value">{{ user_count }}</div>
                 </div>
-                <div class="stat-box">
-                    <h3>工作记录</h3>
-                    <div class="number">{{ record_count }}</div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h5>工作记录</h5>
+                    <div class="card-value">{{ record_count }}</div>
                 </div>
-                <div class="stat-box">
-                    <h3>上传文件</h3>
-                    <div class="number">{{ file_count }}</div>
+            </div>
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <h5>上传文件</h5>
+                    <div class="card-value">{{ file_count }}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 系统功能 -->
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4">系统功能</h2>
+                <p class="text-center mb-5">本系统提供工作监控数据的集中管理和查看功能，帮助团队更高效地协作</p>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-people" viewBox="0 0 16 16">
+                                <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+                            </svg>
+                        </div>
+                        <h5 class="card-title">用户管理</h5>
+                        <p class="card-text">支持多用户注册登录和权限管理，提供细粒度的访问控制</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-clock-history" viewBox="0 0 16 16">
+                                <path d="M8.515 1.019A7 7 0 0 0 8 1V0a8 8 0 0 1 .589.022l-.074.997zm2.004.45a7.003 7.003 0 0 0-.985-.299l.219-.976c.383.086.76.2 1.126.342l-.36.933zm1.37.71a7.01 7.01 0 0 0-.439-.27l.493-.87a8.025 8.025 0 0 1 .979.654l-.615.789a6.996 6.996 0 0 0-.418-.302zm1.834 1.79a6.99 6.99 0 0 0-.653-.796l.724-.69c.27.285.52.59.747.91l-.818.576zm.744 1.352a7.08 7.08 0 0 0-.214-.468l.893-.45a7.976 7.976 0 0 1 .45 1.088l-.95.313a7.023 7.023 0 0 0-.179-.483zm.53 2.507a6.991 6.991 0 0 0-.1-1.025l.985-.17c.067.386.106.778.116 1.17l-1 .025zm-.131 1.538c.033-.17.06-.339.081-.51l.993.123a7.957 7.957 0 0 1-.23 1.155l-.964-.267c.046-.165.086-.332.12-.501zm-.952 2.379c.184-.29.346-.594.486-.908l.914.405c-.16.36-.345.706-.555 1.038l-.845-.535zm-.964 1.205c.122-.122.239-.248.35-.378l.758.653a8.073 8.073 0 0 1-.401.432l-.707-.707z"/>
+                                <path d="M8 1a7 7 0 1 0 4.95 11.95l.707.707A8.001 8.001 0 1 1 8 0v1z"/>
+                                <path d="M7.5 3a.5.5 0 0 1 .5.5v5.21l3.248 1.856a.5.5 0 0 1-.496.868l-3.5-2A.5.5 0 0 1 7 9V3.5a.5.5 0 0 1 .5-.5z"/>
+                            </svg>
+                        </div>
+                        <h5 class="card-title">时间跟踪</h5>
+                        <p class="card-text">精确记录工作时间，自动统计每日和每周工作时长</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-camera" viewBox="0 0 16 16">
+                                <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z"/>
+                                <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7zM3 6.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0z"/>
+                            </svg>
+                        </div>
+                        <h5 class="card-title">屏幕捕获</h5>
+                        <p class="card-text">定时截取屏幕画面和摄像头图像，帮助管理员了解员工工作状态</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3 mb-4">
+                <div class="card feature-card">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="currentColor" class="bi bi-bar-chart-line" viewBox="0 0 16 16">
+                                <path d="M11 2a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v12h.5a.5.5 0 0 1 0 1H.5a.5.5 0 0 1 0-1H1v-3a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v3h1V7a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v7h1V2zm1 12h2V2h-2v12zm-3 0V7H7v7h2zm-5 0v-3H2v3h2z"/>
+                            </svg>
+                        </div>
+                        <h5 class="card-title">统计分析</h5>
+                        <p class="card-text">生成详细的工作统计报表，可视化展示工作时长和使用应用分布</p>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card">
-            <h2>系统功能</h2>
-            <p>本系统提供工作监控数据的集中管理和查看功能，包括:</p>
-            <ul>
-                <li>用户注册和认证</li>
-                <li>工作时间记录上传和统计</li>
-                <li>屏幕截图和应用程序记录管理</li>
-                <li>管理员监控和数据查看</li>
-            </ul>
-            <a href="/login" class="btn">管理员登录</a>
-            <a href="/api" class="btn">API文档</a>
+        <!-- 系统状态 -->
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">系统状态</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <strong>服务器运行状态:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                <span class="badge bg-success">{{ server_status }}</span>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <strong>服务器启动时间:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ server_start_time }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <strong>服务器版本:</strong>
+                            </div>
+                            <div class="col-md-8">
+                                {{ server_version }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="card">
-            <h2>系统状态</h2>
-            <p>服务器运行状态: <strong>{{ server_status }}</strong></p>
-            <p>服务器启动时间: <strong>{{ server_start_time }}</strong></p>
-            <p>服务器版本: <strong>{{ server_version }}</strong></p>
+        <!-- 入口按钮 -->
+        <div class="row mb-5">
+            <div class="col-md-8 mx-auto text-center">
+                <a href="/login" class="btn btn-primary btn-lg me-3">管理员登录</a>
+                <a href="/api" class="btn btn-outline-secondary btn-lg">API文档</a>
+            </div>
         </div>
     </div>
 
-    <div class="footer">
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-4">
         <div class="container">
-            <p>&copy; 2025 工作监控系统 - 服务器端</p>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>关于工作监控系统</h5>
+                    <p>工作监控系统是一款专业的员工工作时间和活动跟踪工具，帮助企业提升团队协作效率。</p>
+                </div>
+                <div class="col-md-3">
+                    <h5>链接</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="/login" class="text-white">管理员登录</a></li>
+                        <li><a href="/api" class="text-white">API文档</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5>联系我们</h5>
+                    <ul class="list-unstyled">
+                        <li>邮箱: support@workmonitor.com</li>
+                        <li>电话: 400-123-4567</li>
+                    </ul>
+                </div>
+            </div>
+            <hr>
+            <div class="text-center">
+                <p>&copy; 2025 工作监控系统 - 服务器端</p>
+            </div>
         </div>
-    </div>
+    </footer>
 </body>
 </html>

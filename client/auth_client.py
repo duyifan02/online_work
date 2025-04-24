@@ -218,44 +218,44 @@ class AuthClient:
             logging.error(f"上传记录时出错: {e}")
             return False, f"请求错误: {e}"
             
-    def upload_file(self, file_path: str, file_type: str) -> Tuple[bool, str, Optional[str]]:
+    def upload_file(self, file_path, file_type=None):
         """上传文件
         
         Args:
             file_path: 文件路径
-            file_type: 文件类型 ('screenshot', 'camera')
+            file_type: 文件类型 (可选)
             
         Returns:
-            Tuple[bool, str, Optional[str]]: (是否成功, 消息, 服务器端文件路径)
+            tuple: (是否成功, 消息, 返回数据)
         """
         if not self.is_authenticated():
-            return False, "未登录", None
+            return False, "未认证", None
             
         if not os.path.exists(file_path):
             return False, f"文件不存在: {file_path}", None
             
-        url = f"{self.server_url}/api/upload/file"
         try:
-            headers = {
-                'Authorization': f'Bearer {self.token}'
-                # 注意：不要在这里设置Content-Type，因为requests会自动设置
-            }
-            
+            # 准备文件
+            file_name = os.path.basename(file_path)
             with open(file_path, 'rb') as f:
-                filename = os.path.basename(file_path)
-                files = {'file': (filename, f, 'application/octet-stream')}
-                response = requests.post(url, files=files, headers=headers)
-            
-            if response.status_code == 200:
-                data = response.json()
-                return True, "文件上传成功", data.get('file_path')
-            else:
-                data = response.json() if response.content else {"message": "未知错误"}
-                return False, data.get('message', '文件上传失败'), None
+                files = {'file': (file_name, f)}
+                
+                # 发送请求
+                response = self._api_request('POST', 'upload/file', files=files)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    return True, "上传成功", result.get('file_path')
+                else:
+                    error_msg = "上传失败"
+                    try:
+                        error_msg = response.json().get('message', error_msg)
+                    except:
+                        pass
+                    return False, error_msg, None
         except Exception as e:
-            logging.error(f"上传文件时出错: {e}")
-            return False, f"请求错误: {e}", None
-            
+            return False, f"上传文件时出错: {str(e)}", None
+
     def get_user_records(self) -> Tuple[bool, str, list]:
         """获取当前用户的工作记录
         
@@ -333,3 +333,182 @@ class AuthClient:
         except Exception as e:
             logging.error(f"获取所有用户时出错: {e}")
             return False, f"请求错误: {e}", []
+        
+    def _api_request(self, method, endpoint, data=None, files=None):
+        """发送 API 请求
+        
+        Args:
+            method: HTTP 方法 ('GET', 'POST', etc.)
+            endpoint: API 端点 (不包含基础 URL)
+            data: 请求数据 (字典)
+            files: 上传的文件
+            
+        Returns:
+            Response 对象
+        """
+        url = f"{self.server_url}/api/{endpoint}"
+        headers = {}
+        
+        # 添加认证令牌
+        if self.token:
+            headers['Authorization'] = f"Bearer {self.token}"
+        
+        # 发送请求
+        if method.upper() == 'GET':
+            return requests.get(url, headers=headers, params=data)
+        elif method.upper() == 'POST':
+            if files:
+                return requests.post(url, headers=headers, data=data, files=files)
+            else:
+                headers['Content-Type'] = 'application/json'
+                return requests.post(url, headers=headers, json=data)
+        else:
+            raise ValueError(f"不支持的HTTP方法: {method}")
+
+    def upload_weekly_stats(self, stats_file):
+        """上传周统计数据
+        
+        Args:
+            stats_file: 统计数据文件路径
+            
+        Returns:
+            tuple: (是否成功, 消息, 返回数据)
+        """
+        if not self.is_authenticated():
+            return False, "未认证", None
+            
+        try:
+            # 读取周统计文件
+            with open(stats_file, 'r', encoding='utf-8') as f:
+                stats_data = json.load(f)
+                
+            # 提取需要的数据
+            if 'year' not in stats_data or 'week' not in stats_data:
+                return False, "统计文件缺少年份或周数信息", None
+                
+            # 确保使用正确的属性名 - weekday_seconds 和 weekend_seconds
+            weekday_seconds = stats_data.get('weekday_seconds', 0)
+            weekend_seconds = stats_data.get('weekend_seconds', 0)
+            
+            # 构建请求数据
+            data = {
+                'year': stats_data['year'],
+                'week': stats_data['week'],
+                'weekday_seconds': int(weekday_seconds),  # 确保是整数类型
+                'weekend_seconds': int(weekend_seconds)   # 确保是整数类型
+            }
+            
+            # 发送请求
+            response = self._api_request('POST', 'upload/weekly_stats', data=data)
+            
+            if response.status_code == 200:
+                result = response.json()
+                return True, "上传成功", result
+            else:
+                error_msg = "上传失败"
+                try:
+                    error_msg = response.json().get('message', error_msg)
+                except:
+                    pass
+                return False, error_msg, None
+                
+        except FileNotFoundError:
+            return False, f"找不到统计文件: {stats_file}", None
+        except json.JSONDecodeError:
+            return False, f"统计文件格式错误: {stats_file}", None
+        except Exception as e:
+            return False, f"上传统计数据时出错: {str(e)}", None
+
+    def check_file_exists(self, file_hash: str, file_type: str = None) -> Tuple[bool, bool, Optional[str]]:
+        """检查文件是否已存在于服务器
+        
+        Args:
+            file_hash: 文件哈希值
+            file_type: 文件类型，可选
+            
+        Returns:
+            Tuple[bool, bool, Optional[str]]: (请求是否成功, 文件是否存在, 服务器上的文件路径)
+        """
+        if not self.is_authenticated():
+            return False, False, None
+            
+        url = f"{self.server_url}/api/check_file"
+        try:
+            headers = self.get_headers()
+            data = {'file_hash': file_hash}
+            if file_type:
+                data['file_type'] = file_type
+                
+            response = requests.post(url, json=data, headers=headers)
+            
+            if response.status_code == 200:
+                data = response.json()
+                return True, data.get('exists', False), data.get('file_path')
+            else:
+                return False, False, None
+        except Exception as e:
+            logging.error(f"检查文件是否存在时出错: {e}")
+            return False, False, None
+            
+    def upload_file_with_hash(self, file_path: str, file_type: str, file_hash: str = None) -> Tuple[bool, str, Optional[str]]:
+        """上传文件并包含哈希值，用于增量上传
+        
+        Args:
+            file_path: 文件路径
+            file_type: 文件类型
+            file_hash: 文件哈希值，如果为None则自动计算
+            
+        Returns:
+            Tuple[bool, str, Optional[str]]: (是否成功, 消息, 服务器端文件路径)
+        """
+        if not self.is_authenticated():
+            return False, "未登录", None
+            
+        if not os.path.exists(file_path):
+            return False, f"文件不存在: {file_path}", None
+        
+        # 如果未提供哈希值，则计算哈希值
+        if file_hash is None:
+            try:
+                from file_sync import FileSyncManager
+                sync_manager = FileSyncManager()
+                file_hash = sync_manager.compute_file_hash(file_path)
+            except Exception as e:
+                logging.error(f"计算文件哈希值时出错: {e}")
+                # 如果计算失败，尝试直接上传
+                return self.upload_file(file_path, file_type)
+        
+        # 先检查文件是否已存在
+        success, exists, remote_path = self.check_file_exists(file_hash, file_type)
+        if success and exists and remote_path:
+            # 文件已存在，无需重新上传
+            logging.info(f"文件已存在于服务器: {os.path.basename(file_path)}")
+            return True, "文件已存在于服务器", remote_path
+            
+        # 文件不存在或检查失败，上传文件
+        url = f"{self.server_url}/api/upload/file_with_hash"
+        try:
+            headers = {
+                'Authorization': f'Bearer {self.token}'
+                # 注意：不要在这里设置Content-Type，因为requests会自动设置
+            }
+            
+            with open(file_path, 'rb') as f:
+                filename = os.path.basename(file_path)
+                files = {'file': (filename, f, 'application/octet-stream')}
+                data = {
+                    'file_type': file_type,
+                    'file_hash': file_hash
+                }
+                response = requests.post(url, files=files, data=data, headers=headers)
+            
+                if response.status_code == 200:
+                    data = response.json()
+                    return True, "文件上传成功", data.get('file_path')
+                else:
+                    data = response.json() if response.content else {"message": "未知错误"}
+                    return False, data.get('message', '文件上传失败'), None
+                    
+        except Exception as e:
+            logging.error(f"上传文件时出错: {e}")
+            return False, f"请求错误: {e}", None
