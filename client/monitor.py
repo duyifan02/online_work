@@ -248,6 +248,10 @@ class MonitorSystem:
         with open(record_file, "wb") as f:
             f.write(encrypted_json)
         logging.info(f"已加密保存记录数据到 {record_file}")
+        
+        # 每次保存监控数据后也保存统计时长数据，防止意外中断导致数据丢失
+        self.save_stats()
+        logging.info("已更新统计时长数据")
 
     def _monitoring_loop(self):
         """检测循环"""
