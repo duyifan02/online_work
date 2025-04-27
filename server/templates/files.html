@@ -434,7 +434,11 @@
                     {% endif %}
                     {% endif %}
                     
-                    {% for i in range(max(1, page-2), min(pages+1, page+3)) %}
+                    {# 修复 max 和 min 函数不可用的问题 #}
+                    {% set start_page = page - 2 if page - 2 > 0 else 1 %}
+                    {% set end_page = page + 3 if page + 3 < pages + 1 else pages + 1 %}
+                    
+                    {% for i in range(start_page, end_page) %}
                     <li class="page-item {% if i == page %}active{% endif %}">
                         <a class="page-link" href="{{ url_for('dashboard_files', page=i, user_id=user_id, file_type=file_type, start_date=start_date, end_date=end_date, sort_by=sort_by, per_page=per_page, filename=filename) }}">{{ i }}</a>
                     </li>
