@@ -214,14 +214,14 @@ class MonitorSystem:
                 f.write(encrypted_data)
             logging.info(f"已加密保存摄像头图像到 {camera_file}")
         
-        # 保存屏幕截图 (加密存储)
+        # 保存屏幕截图 (改为使用WebP格式而不是PNG)
         screenshot = self.capture_screenshot()
         if screenshot is not None:
             pil_screenshot = Image.fromarray(screenshot)
             
-            # 将截图保存到内存中
+            # 将截图保存到内存中，使用WebP格式而不是PNG
             img_bytes = io.BytesIO()
-            pil_screenshot.save(img_bytes, format="PNG", compress_level=6)
+            pil_screenshot.save(img_bytes, format="WebP", quality=90)  # 使用较高的quality以保持清晰度
             img_bytes.seek(0)
             
             # 加密截图数据

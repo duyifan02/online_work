@@ -334,13 +334,13 @@ class MonitoringGUI:
                             screenshot_enc_path = os.path.join(timestamp_dir_path, "screenshot.enc")
                             temp_screenshot_path = None
                             
-                            # 解密截图并保存为临时文件
+                            # 解密截图并保存为临时文件 (使用WebP格式而不是PNG)
                             if os.path.exists(screenshot_enc_path):
                                 try:
                                     screenshot_img = self.monitor.decrypt_image(screenshot_enc_path)
                                     if screenshot_img:
-                                        temp_screenshot_path = os.path.join(temp_dir, f"{timestamp_dir_name}_screenshot.png")
-                                        screenshot_img.save(temp_screenshot_path, format="PNG")
+                                        temp_screenshot_path = os.path.join(temp_dir, f"{timestamp_dir_name}_screenshot.webp")
+                                        screenshot_img.save(temp_screenshot_path, format="WebP", quality=90)
                                 except Exception as e:
                                     logging.error(f"解密截图出错: {e}")
                             
