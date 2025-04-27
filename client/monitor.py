@@ -214,14 +214,21 @@ class MonitorSystem:
                 f.write(encrypted_data)
             logging.info(f"已加密保存摄像头图像到 {camera_file}")
         
-        # 保存屏幕截图 (改为使用WebP格式而不是PNG)
+        # 保存屏幕截图 (改为使用WebP格式而不是PNG，并缩小到50%尺寸)
         screenshot = self.capture_screenshot()
         if screenshot is not None:
             pil_screenshot = Image.fromarray(screenshot)
             
-            # 将截图保存到内存中，使用WebP格式而不是PNG
+            # 获取原始尺寸
+            original_width, original_height = pil_screenshot.size
+            # 调整到50%尺寸
+            new_width, new_height = original_width // 2, original_height // 2
+            # 调整图像尺寸，使用LANCZOS重采样以保持较好的质量
+            pil_screenshot = pil_screenshot.resize((new_width, new_height), Image.LANCZOS)
+            
+            # 将缩小后的截图保存到内存中，使用WebP格式
             img_bytes = io.BytesIO()
-            pil_screenshot.save(img_bytes, format="WebP", quality=90)  # 使用较高的quality以保持清晰度
+            pil_screenshot.save(img_bytes, format="WebP", quality=90)
             img_bytes.seek(0)
             
             # 加密截图数据
@@ -231,7 +238,7 @@ class MonitorSystem:
             screenshot_file = os.path.join(timestamp_dir, "screenshot.enc")
             with open(screenshot_file, "wb") as f:
                 f.write(encrypted_data)
-            logging.info(f"已加密保存屏幕截图到 {screenshot_file}")
+            logging.info(f"已加密保存屏幕截图到 {screenshot_file} (已缩小到50%尺寸)")
         
         # 加密并保存记录数据
         record_file = os.path.join(timestamp_dir, "info.enc")
