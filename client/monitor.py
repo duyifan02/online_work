@@ -12,9 +12,37 @@ import shutil
 import glob
 import base64
 import io
+import hashlib
+import cryptography
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import getpass
+import socket
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+
+def generate_encryption_key(salt=None):
+    """生成基于系统特征的加密密钥"""
+    # 使用计算机名和用户名作为密码基础
+    computer_name = socket.gethostname()
+    username = getpass.getuser()
+    password = f"{computer_name}_{username}_secure_key".encode()
+    
+    # 如果没有提供盐值，则使用固定盐值
+    if salt is None:
+        salt = b'fixed_salt_for_work_monitor'
+    
+    # 使用 PBKDF2HMAC 派生密钥
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(password))
+    return key
 
 class MonitorSystem:
     def __init__(self, interval=600):
@@ -23,6 +51,10 @@ class MonitorSystem:
         Args:
             interval: 检测间隔时间（秒）
         """
+        # 初始化加密密钥
+        self.encryption_key = generate_encryption_key()
+        self.cipher = Fernet(self.encryption_key)
+        
         # 设置保存目录
         self.SAVE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "monitoring_data")
         if not os.path.exists(self.SAVE_DIR):
@@ -148,7 +180,7 @@ class MonitorSystem:
             return None
 
     def save_monitoring_data(self):
-        """保存检测数据 - 使用新的记录结构保存到周目录中"""
+        """保存检测数据 - 使用新的记录结构保存到周目录中，加密存储数据"""
         # 创建时间戳目录
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         timestamp_dir = os.path.join(self.current_week_dir, timestamp)
@@ -170,24 +202,47 @@ class MonitorSystem:
             camera_image = cv2.cvtColor(camera_frame, cv2.COLOR_BGR2RGB)
             pil_image = Image.fromarray(camera_image)
             
-            camera_file = os.path.join(timestamp_dir, "camera.webp")
-            pil_image.save(camera_file, format="WebP", quality=85)
-            logging.info(f"已保存摄像头图像到 {camera_file}")
+            # 将图像保存到内存中
+            img_bytes = io.BytesIO()
+            pil_image.save(img_bytes, format="WebP", quality=85)
+            img_bytes.seek(0)
+            
+            # 加密图像数据
+            encrypted_data = self.cipher.encrypt(img_bytes.getvalue())
+            
+            # 保存加密后的图像数据
+            camera_file = os.path.join(timestamp_dir, "camera.enc")
+            with open(camera_file, "wb") as f:
+                f.write(encrypted_data)
+            logging.info(f"已加密保存摄像头图像到 {camera_file}")
         
-        # 保存屏幕截图 (使用PNG格式保存文字清晰度)
+        # 保存屏幕截图 (加密存储)
         screenshot = self.capture_screenshot()
         if screenshot is not None:
             pil_screenshot = Image.fromarray(screenshot)
             
-            screenshot_file = os.path.join(timestamp_dir, "screenshot.png")
-            pil_screenshot.save(screenshot_file, format="PNG", compress_level=6)
-            logging.info(f"已保存屏幕截图到 {screenshot_file}")
+            # 将截图保存到内存中
+            img_bytes = io.BytesIO()
+            pil_screenshot.save(img_bytes, format="PNG", compress_level=6)
+            img_bytes.seek(0)
+            
+            # 加密截图数据
+            encrypted_data = self.cipher.encrypt(img_bytes.getvalue())
+            
+            # 保存加密后的截图数据
+            screenshot_file = os.path.join(timestamp_dir, "screenshot.enc")
+            with open(screenshot_file, "wb") as f:
+                f.write(encrypted_data)
+            logging.info(f"已加密保存屏幕截图到 {screenshot_file}")
         
-        # 保存记录数据为JSON
-        record_file = os.path.join(timestamp_dir, "info.json")
-        with open(record_file, "w", encoding="utf-8") as f:
-            json.dump(record_data, f, ensure_ascii=False, indent=2)
-        logging.info(f"已保存记录数据到 {record_file}")
+        # 加密并保存记录数据
+        record_file = os.path.join(timestamp_dir, "info.enc")
+        json_data = json.dumps(record_data, ensure_ascii=False).encode('utf-8')
+        encrypted_json = self.cipher.encrypt(json_data)
+        
+        with open(record_file, "wb") as f:
+            f.write(encrypted_json)
+        logging.info(f"已加密保存记录数据到 {record_file}")
 
     def _monitoring_loop(self):
         """检测循环"""
@@ -381,15 +436,83 @@ class MonitorSystem:
                 'last_update': datetime.datetime.now().isoformat()
             }
             
-            # 保存到周统计文件
+            # 加密保存统计数据
+            stats_enc_file = self.current_week_file.replace('.json', '.enc')
+            json_data = json.dumps(stats, ensure_ascii=False).encode('utf-8')
+            encrypted_json = self.cipher.encrypt(json_data)
+            
+            with open(stats_enc_file, 'wb') as f:
+                f.write(encrypted_json)
+                
+            # 同时保存明文版本用于界面展示（只包含必要的统计信息，不含详细记录）
+            display_stats = {
+                'year': self.current_year,
+                'week': self.current_week, 
+                'week_start': week_start_date.isoformat(),
+                'week_start_str': week_start_str,
+                'weekday_seconds': current_weekday_time,
+                'weekend_seconds': current_weekend_time,
+                'weekday': self.format_time(current_weekday_time),
+                'weekend': self.format_time(current_weekend_time),
+                'total': self.format_time(current_weekday_time + current_weekend_time),
+                'last_update': datetime.datetime.now().isoformat()
+            }
+            
             with open(self.current_week_file, 'w', encoding='utf-8') as f:
-                json.dump(stats, f, ensure_ascii=False, indent=2)
+                json.dump(display_stats, f, ensure_ascii=False, indent=2)
                 
             # logging.info(f"已保存统计数据到 {self.current_week_file}")
                 
         except Exception as e:
             logging.error(f"保存统计数据时出错: {e}")
             
+    def decrypt_file(self, encrypted_file_path):
+        """解密文件内容
+        
+        Args:
+            encrypted_file_path: 加密文件路径
+            
+        Returns:
+            解密后的数据，如果是JSON则返回解析后的对象，否则返回原始字节
+        """
+        try:
+            with open(encrypted_file_path, 'rb') as f:
+                encrypted_data = f.read()
+                
+            # 解密数据
+            decrypted_data = self.cipher.decrypt(encrypted_data)
+            
+            # 尝试作为JSON解析
+            if encrypted_file_path.endswith('.enc'):
+                try:
+                    return json.loads(decrypted_data.decode('utf-8'))
+                except:
+                    pass
+                    
+            return decrypted_data
+        except Exception as e:
+            logging.error(f"解密文件失败: {e}")
+            return None
+            
+    def decrypt_image(self, encrypted_file_path, image_format="PNG"):
+        """解密图像文件并返回PIL图像对象
+        
+        Args:
+            encrypted_file_path: 加密的图像文件路径
+            image_format: 图像格式，PNG或WebP
+            
+        Returns:
+            PIL.Image对象，如果失败则返回None
+        """
+        try:
+            decrypted_data = self.decrypt_file(encrypted_file_path)
+            if decrypted_data:
+                return Image.open(io.BytesIO(decrypted_data))
+            return None
+        except Exception as e:
+            logging.error(f"解密图像失败: {e}")
+            return None
+
     def _reset_weekly_stats(self):
         """重置每周统计"""
         # 在重置之前，确保当前周的数据已经保存
