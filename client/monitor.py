@@ -24,11 +24,9 @@ import socket
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 def generate_encryption_key(salt=None):
-    """生成基于系统特征的加密密钥"""
-    # 使用计算机名和用户名作为密码基础
-    computer_name = socket.gethostname()
-    username = getpass.getuser()
-    password = f"{computer_name}_{username}_secure_key".encode()
+    """生成基于固定密码的加密密钥"""
+    # 使用固定密码
+    password = "SYSU".encode()
     
     # 如果没有提供盐值，则使用固定盐值
     if salt is None:
@@ -84,8 +82,8 @@ class MonitorSystem:
         if not os.path.exists(self.current_week_dir):
             os.makedirs(self.current_week_dir)
             
-        # 当前周统计文件
-        self.current_week_file = os.path.join(self.STATS_DIR, f"{self.current_week_id}.json")
+        # 当前周统计文件 - 直接使用.enc扩展名
+        self.current_week_file = os.path.join(self.STATS_DIR, f"{self.current_week_id}.enc")
         
         self.interval = interval
         self.running = False
@@ -289,9 +287,8 @@ class MonitorSystem:
                         self.format_time(current_weekend)  # 周末时间
                     )
             
-            # 每小时保存一次统计数据
-            if self.running and not self.paused:
-                self.save_stats()
+            # 移除每小时自动保存统计数据的功能
+            # 只在程序暂停、停止或关闭时保存统计数据
                 
             # 每周一重置周统计数据
             now = datetime.datetime.now()
@@ -304,36 +301,62 @@ class MonitorSystem:
     def get_available_weeks(self):
         """获取所有可用的周统计数据"""
         weeks = []
-        pattern = os.path.join(self.STATS_DIR, "*.json")
-        for file_path in glob.glob(pattern):
-            file_name = os.path.basename(file_path)
-            # 从文件名中提取年份和周号 (YYYY_WW.json)
-            if file_name.endswith(".json") and "_" in file_name:
-                try:
-                    # 解析文件名格式 YYYY_WW.json
-                    name_parts = file_name.split('.')
-                    if len(name_parts) != 2 or name_parts[1] != 'json':
-                        continue
-                    
-                    year_week_parts = name_parts[0].split('_')
-                    if len(year_week_parts) != 2:
-                        continue
-                    
-                    year = int(year_week_parts[0])
-                    week = int(year_week_parts[1])
-                    
-                    # 计算该周的开始日期
-                    first_day = datetime.date(year, 1, 1)
-                    days_to_add = (week - 1) * 7
-                    if first_day.weekday() != 0:  # 如果1月1日不是周一
-                        days_to_add -= first_day.weekday()
-                    
-                    week_start_date = first_day + datetime.timedelta(days=days_to_add)
-                    
-                    # 加载文件以获取更多信息
+        
+        # 同时搜索 .json 和 .enc 格式的统计文件
+        patterns = [
+            os.path.join(self.STATS_DIR, "*.json"),
+            os.path.join(self.STATS_DIR, "*.enc")
+        ]
+        
+        processed_weeks = set()  # 用于跟踪已处理的周
+        
+        for pattern in patterns:
+            for file_path in glob.glob(pattern):
+                file_name = os.path.basename(file_path)
+                
+                # 提取文件名的基本部分 (YYYY_WW) 无论是 .json 还是 .enc
+                base_name = file_name.split('.')[0]
+                
+                # 如果这个周已经处理过，跳过
+                if base_name in processed_weeks:
+                    continue
+                processed_weeks.add(base_name)
+                
+                # 从文件名中提取年份和周号 (YYYY_WW)
+                if "_" in base_name:
                     try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            stats = json.load(f)
+                        year_week_parts = base_name.split('_')
+                        if len(year_week_parts) != 2:
+                            continue
+                        
+                        year = int(year_week_parts[0])
+                        week = int(year_week_parts[1])
+                        
+                        # 计算该周的开始日期
+                        first_day = datetime.date(year, 1, 1)
+                        days_to_add = (week - 1) * 7
+                        if first_day.weekday() != 0:  # 如果1月1日不是周一
+                            days_to_add -= first_day.weekday()
+                        
+                        week_start_date = first_day + datetime.timedelta(days=days_to_add)
+                        
+                        # 尝试读取统计数据
+                        stats = None
+                        
+                        # 首先尝试加密文件
+                        enc_file = os.path.join(self.STATS_DIR, f"{base_name}.enc")
+                        if os.path.exists(enc_file):
+                            stats = self.decrypt_file(enc_file)
+                        
+                        # 如果加密文件不存在或无法解密，尝试明文文件
+                        if stats is None:
+                            json_file = os.path.join(self.STATS_DIR, f"{base_name}.json")
+                            if os.path.exists(json_file):
+                                with open(json_file, 'r', encoding='utf-8') as f:
+                                    stats = json.load(f)
+                        
+                        # 如果获取到数据，构建周信息
+                        if stats:
                             week_info = {
                                 'date': week_start_date,
                                 'week_start': stats.get('week_start', ''),
@@ -347,21 +370,23 @@ class MonitorSystem:
                                 'file_path': file_path
                             }
                             weeks.append(week_info)
+                        else:
+                            # 如果无法读取任何文件，添加基本信息
+                            weeks.append({
+                                'date': week_start_date,
+                                'week_start': week_start_date.isoformat(),
+                                'week_start_str': week_start_date.strftime("%Y年%m月%d日"),
+                                'weekday': '00:00:00',
+                                'weekend': '00:00:00',
+                                'weekday_seconds': 0,
+                                'weekend_seconds': 0,
+                                'week_seconds': 0,
+                                'week': '00:00:00',
+                                'file_path': file_path
+                            })
                     except Exception as e:
-                        logging.error(f"读取周统计文件出错: {e}")
-                        # 如果文件无法读取，仍然添加基本信息
-                        weeks.append({
-                            'date': week_start_date,
-                            'week_start': week_start_date.isoformat(),
-                            'week_start_str': week_start_date.strftime("%Y年%m月%d日"),
-                            'weekday': '00:00:00',
-                            'weekend': '00:00:00',
-                            'week': '00:00:00',
-                            'file_path': file_path
-                        })
-                except ValueError:
-                    # 如果日期格式不正确，跳过
-                    continue
+                        logging.error(f"处理周统计文件出错: {e}, 文件: {file_path}")
+                        continue
                     
         # 按日期降序排序（最近的周在前）
         weeks.sort(key=lambda x: x['date'], reverse=True)
@@ -370,6 +395,29 @@ class MonitorSystem:
     def load_stats(self):
         """加载统计数据"""
         try:
+            # 首先尝试读取加密的统计文件
+            stats_enc_file = self.current_week_file.replace('.json', '.enc')
+            
+            if os.path.exists(stats_enc_file):
+                # 如果加密文件存在，解密并加载
+                stats = self.decrypt_file(stats_enc_file)
+                if stats:
+                    # 检查是否是当前周的数据
+                    today = datetime.date.today()
+                    week_start = (today - datetime.timedelta(days=today.weekday())).isoformat()
+                    
+                    if stats.get('week_start') == week_start:
+                        # 加载工作日和周末时间
+                        self.weekday_time = float(stats.get('weekday_seconds', 0))
+                        self.weekend_time = float(stats.get('weekend_seconds', 0))
+                        return
+                    else:
+                        # 新的一周，重置时间
+                        self.weekday_time = 0
+                        self.weekend_time = 0
+                        return
+            
+            # 如果加密文件不存在或无法解密，尝试读取未加密的备份文件
             if os.path.exists(self.current_week_file):
                 with open(self.current_week_file, 'r', encoding='utf-8') as f:
                     stats = json.load(f)
@@ -386,6 +434,11 @@ class MonitorSystem:
                     # 新的一周，重置时间
                     self.weekday_time = 0
                     self.weekend_time = 0
+            else:
+                # 没有找到任何统计数据文件
+                self.weekday_time = 0
+                self.weekend_time = 0
+                
         except Exception as e:
             logging.error(f"加载统计数据时出错: {e}")
             self.weekday_time = 0
@@ -436,7 +489,7 @@ class MonitorSystem:
                 'last_update': datetime.datetime.now().isoformat()
             }
             
-            # 加密保存统计数据
+            # 只保存加密统计数据文件，不再保存明文JSON
             stats_enc_file = self.current_week_file.replace('.json', '.enc')
             json_data = json.dumps(stats, ensure_ascii=False).encode('utf-8')
             encrypted_json = self.cipher.encrypt(json_data)
@@ -444,24 +497,8 @@ class MonitorSystem:
             with open(stats_enc_file, 'wb') as f:
                 f.write(encrypted_json)
                 
-            # 同时保存明文版本用于界面展示（只包含必要的统计信息，不含详细记录）
-            display_stats = {
-                'year': self.current_year,
-                'week': self.current_week, 
-                'week_start': week_start_date.isoformat(),
-                'week_start_str': week_start_str,
-                'weekday_seconds': current_weekday_time,
-                'weekend_seconds': current_weekend_time,
-                'weekday': self.format_time(current_weekday_time),
-                'weekend': self.format_time(current_weekend_time),
-                'total': self.format_time(current_weekday_time + current_weekend_time),
-                'last_update': datetime.datetime.now().isoformat()
-            }
-            
-            with open(self.current_week_file, 'w', encoding='utf-8') as f:
-                json.dump(display_stats, f, ensure_ascii=False, indent=2)
-                
-            # logging.info(f"已保存统计数据到 {self.current_week_file}")
+            # 不再保存明文JSON文件
+            # logging.info(f"已保存加密统计数据到 {stats_enc_file}")
                 
         except Exception as e:
             logging.error(f"保存统计数据时出错: {e}")
@@ -530,9 +567,9 @@ class MonitorSystem:
             os.makedirs(self.current_week_dir)
             logging.info(f"创建新的周目录: {self.current_week_dir}")
             
-        # 更新周文件
+        # 更新周文件 - 使用.enc扩展名而非.json
         self.current_week_start = today - datetime.timedelta(days=today.weekday())
-        self.current_week_file = os.path.join(self.STATS_DIR, f"{self.current_week_id}.json")
+        self.current_week_file = os.path.join(self.STATS_DIR, f"{self.current_week_id}.enc")
         
         # 重置周统计数据
         self.weekday_time = 0

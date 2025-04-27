@@ -253,19 +253,47 @@ class MonitoringGUI:
                 foreground="blue"
             ))
             
-            # 获取当前周的统计文件
-            current_week_file = self.monitor.current_week_file
-            current_week_enc_file = current_week_file.replace('.json', '.enc')
+            # 获取当前周的加密统计文件 (.enc)
+            current_week_enc_file = self.monitor.current_week_file
             
-            if os.path.exists(current_week_file):
-                # 上传周统计数据
-                success, message, _ = self.auth_client.upload_weekly_stats(current_week_file)
+            # 创建临时文件用于上传
+            temp_stats_file = None
+            
+            # 如果加密文件存在，解密并创建临时JSON文件用于上传
+            if os.path.exists(current_week_enc_file):
+                try:
+                    stats_data = self.monitor.decrypt_file(current_week_enc_file)
+                    if stats_data:
+                        temp_dir = os.path.join(self.monitor.SAVE_DIR, "temp_upload")
+                        if not os.path.exists(temp_dir):
+                            os.makedirs(temp_dir)
+                            
+                        temp_stats_file = os.path.join(temp_dir, f"temp_weekly_stats.json")
+                        with open(temp_stats_file, 'w', encoding='utf-8') as f:
+                            json.dump(stats_data, f, ensure_ascii=False, indent=2)
+                except Exception as e:
+                    logging.error(f"解密统计文件出错: {e}")
+            
+            # 上传临时统计文件
+            if temp_stats_file and os.path.exists(temp_stats_file):
+                success, message, _ = self.auth_client.upload_weekly_stats(temp_stats_file)
+                
+                # 删除临时文件
+                try:
+                    os.remove(temp_stats_file)
+                except:
+                    pass
                 
                 if not success:
                     self.root.after(0, lambda: self.upload_status_label.config(
                         text=f"周统计数据上传失败: {message}",
                         foreground="red"
                     ))
+                    # 删除临时目录并返回
+                    try:
+                        shutil.rmtree(os.path.dirname(temp_stats_file))
+                    except:
+                        pass
                     return
                 else:
                     self.root.after(0, lambda: self.upload_status_label.config(
@@ -302,12 +330,11 @@ class MonitoringGUI:
                                 except:
                                     pass
 
-                            # 上传截图 (处理加密文件)
+                            # 上传截图（一定是加密文件）
                             screenshot_enc_path = os.path.join(timestamp_dir_path, "screenshot.enc")
-                            screenshot_path = os.path.join(timestamp_dir_path, "screenshot.png")
                             temp_screenshot_path = None
                             
-                            # 如果存在加密截图，解密并保存为临时文件
+                            # 解密截图并保存为临时文件
                             if os.path.exists(screenshot_enc_path):
                                 try:
                                     screenshot_img = self.monitor.decrypt_image(screenshot_enc_path)
@@ -317,28 +344,19 @@ class MonitoringGUI:
                                 except Exception as e:
                                     logging.error(f"解密截图出错: {e}")
                             
-
-                            # 上传解密后的截图或原始截图
+                            # 上传解密后的截图
                             if temp_screenshot_path and os.path.exists(temp_screenshot_path):
                                 success, message, file_path = self.auth_client.upload_file(temp_screenshot_path, "screenshot")
                                 if success:
                                     uploaded_files += 1
                                 else:
                                     failed_uploads += 1
-                            elif os.path.exists(screenshot_path):
-                                success, message, file_path = self.auth_client.upload_file(screenshot_path, "screenshot")
-                                if success:
-                                    uploaded_files += 1
-                                else:
-                                    failed_uploads += 1
                             
-
-                            # 上传摄像头图像 (处理加密文件)
+                            # 上传摄像头图像（一定是加密文件）
                             camera_enc_path = os.path.join(timestamp_dir_path, "camera.enc")
-                            camera_path = os.path.join(timestamp_dir_path, "camera.webp")
                             temp_camera_path = None
                             
-                            # 如果存在加密图片，解密并保存为临时文件
+                            # 解密摄像头图像并保存为临时文件
                             if os.path.exists(camera_enc_path):
                                 try:
                                     camera_img = self.monitor.decrypt_image(camera_enc_path, "WebP")
@@ -348,27 +366,19 @@ class MonitoringGUI:
                                 except Exception as e:
                                     logging.error(f"解密摄像头图片出错: {e}")
                             
-
-                            # 上传解密后的摄像头图像或原始图像
+                            # 上传解密后的摄像头图像
                             if temp_camera_path and os.path.exists(temp_camera_path):
                                 success, message, file_path = self.auth_client.upload_file(temp_camera_path, "camera")
                                 if success:
                                     uploaded_files += 1
                                 else:
                                     failed_uploads += 1
-                            elif os.path.exists(camera_path):
-                                success, message, file_path = self.auth_client.upload_file(camera_path, "camera")
-                                if success:
-                                    uploaded_files += 1
-                                else:
-                                    failed_uploads += 1
                                     
-                            # 上传信息文件 (处理加密文件)
+                            # 上传信息文件（一定是加密文件）
                             info_enc_path = os.path.join(timestamp_dir_path, "info.enc")
-                            info_path = os.path.join(timestamp_dir_path, "info.json")
                             temp_info_path = None
                             
-                            # 如果存在加密信息文件，解密并保存为临时文件
+                            # 解密信息文件并保存为临时文件
                             if os.path.exists(info_enc_path):
                                 try:
                                     info_data = self.monitor.decrypt_file(info_enc_path)
@@ -379,16 +389,9 @@ class MonitoringGUI:
                                 except Exception as e:
                                     logging.error(f"解密信息文件出错: {e}")
                             
-
-                            # 上传解密后的信息文件或原始文件
+                            # 上传解密后的信息文件
                             if temp_info_path and os.path.exists(temp_info_path):
                                 success, message, file_path = self.auth_client.upload_file(temp_info_path, "info")
-                                if success:
-                                    uploaded_files += 1
-                                else:
-                                    failed_uploads += 1
-                            elif os.path.exists(info_path):
-                                success, message, file_path = self.auth_client.upload_file(info_path, "info")
                                 if success:
                                     uploaded_files += 1
                                 else:
